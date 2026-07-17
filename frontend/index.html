@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- viewport-fit=cover handles the Android notch/status bar area -->
+
+    <!-- Prevent tap highlight on mobile -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <!-- Theme color matches primary brand color from architecture/04_UI_UX_Spec.md §2 -->
+    <meta name="theme-color" content="#1a936f" />
+
+    <title>CropCare</title>
+
+    <!--
+      NOTE: No custom web fonts loaded here.
+      Per architecture/04_UI_UX_Spec.md §2 — use system default (Roboto on Android).
+      Custom fonts add load time with no benefit inside a Capacitor native shell.
+    -->
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- Vite injects the compiled React bundle here -->
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Env files - never commit real secrets
+.env
+.env.local
+**/.env
+**/.env.local
+
+# Build outputs
+dist/
+build/
+**/dist/
+**/build/
+
+# Capacitor / Android native project artifacts
+frontend/android/
+frontend/ios/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Kiro working files (adjust if Kiro needs specific files tracked)
+.kiro/cache/
+
+# Original boilerplate folder — contents moved to repo root, kept locally as backup
+CropCare-boilerplate/

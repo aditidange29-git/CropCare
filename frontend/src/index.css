@@ -1,0 +1,39 @@
+/* CropCare — Global base styles
+ *
+ * Tailwind base is injected here.
+ * Design tokens are in architecture/04_UI_UX_Spec.md §2 —
+ * primary #1a936f, secondary #114b5f, etc.
+ * Custom CSS variables below make tokens available to non-Tailwind code.
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #1a936f;
+  --color-secondary: #114b5f;
+  --color-warning: #f0a202;
+  --color-error: #c1121f;
+  --color-background: #f8f9fa;
+
+  /* Min tap target per architecture/04_UI_UX_Spec.md §2 — 44×44dp */
+  --min-tap-target: 44px;
+}
+
+/* Reset: remove tap highlight flash on Android WebView */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Full-height app shell — Capacitor fills the entire screen */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-background);
+  /* System font stack — Roboto on Android, no custom font loading */
+  font-family: Roboto, system-ui, -apple-system, sans-serif;
+}
