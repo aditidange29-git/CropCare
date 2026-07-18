@@ -1,60 +1,53 @@
-// CropCare Backend — Entry Point
-//
-// Read before modifying:
-//   architecture/07_Architecture.md  — layers, folder structure, module boundaries
-//   architecture/06_API_Design.md    — every route this server must expose
-//   architecture/05_Database.md      — the schema every module reads/writes
-//
-// Responsibilities:
-//   1. Load and validate env config (src/config/env.ts) — must be first
-//   2. Initialize Express app
-//   3. Apply shared middleware (CORS, JSON body parser, response envelope)
-//   4. Mount module routers from src/modules/*
-//   5. Apply global error handler from src/common/
-//   6. Start listening on config.port
-
-import './config/env.ts'; // load + validate env vars first
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { config } from './config/env.js';
 
+// Routers
+import authRouter from './modules/auth/auth.router.js';
+import usersRouter from './modules/users/users.router.js';
+import dealersRouter from './modules/dealers/dealers.router.js';
+import diseaseLibraryRouter from './modules/disease-library/disease-library.router.js';
+import diagnosesRouter from './modules/diagnoses/diagnoses.router.js';
+import recommendationsRouter from './modules/recommendations/recommendations.router.js';
+import productsRouter from './modules/products/products.router.js';
+import chatsRouter from './modules/chats/chats.router.js';
+import adminRouter from './modules/admin/admin.router.js';
+
 const app = express();
 
-// ── Middleware ────────────────────────────────────────────────────────────────
-app.use(cors());
+app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// ── Health check (useful for Render's free tier — keeps it from sleeping) ─────
+// Health check — keeps Render free tier warm
 app.get('/health', (_req, res) => {
-  res.json({ success: true, data: { status: 'ok', app: 'CropCare API' }, error: null });
+  res.json({ success: true, data: { status: 'ok', app: 'CropCare API', version: '0.1.0' }, error: null });
 });
 
-// ── Module routers ────────────────────────────────────────────────────────────
-// Each module will be imported and mounted here as it's built in Milestones 1–4.
-// Example (add as you build each module):
-//   import authRouter from './modules/auth/auth.router.js';
-//   app.use('/api/v1/auth', authRouter);
-//
-// Per architecture/06_API_Design.md — base path is /api/v1
+// API routes — base path /api/v1
+app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/users', usersRouter);
+app.use('/api/v1/dealers', dealersRouter);
+app.use('/api/v1/disease-library', diseaseLibraryRouter);
+app.use('/api/v1/diagnoses', diagnosesRouter);
+app.use('/api/v1/recommendations', recommendationsRouter);
+app.use('/api/v1/dealer', productsRouter);
+app.use('/api/v1/chats', chatsRouter);
+app.use('/api/v1/admin', adminRouter);
 
-// ── Global error handler ──────────────────────────────────────────────────────
-// Catches any unhandled errors and returns the standard response envelope.
-// See architecture/06_API_Design.md for envelope format.
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('[CropCare API Error]', err);
-  res.status(500).json({
-    success: false,
-    data: null,
-    error: {
-      code: 'INTERNAL_ERROR',
-      message: config.nodeEnv === 'development' ? err.message : 'An unexpected error occurred',
-    },
-  });
+// Global error handler — returns standard response envelope
+app.use((err: Error & { statusCode?: number; code?: string }, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('[CropCare API Error]', err.message);
+  const statusCode = err.statusCode ?? 500;
+  const code = err.code ?? 'INTERNAL_ERROR';
+  const message = config.nodeEnv === 'development' ? err.message : 'An unexpected error occurred';
+  res.status(statusCode).json({ success: false, data: null, error: { code, message } });
 });
 
-// ── Start ─────────────────────────────────────────────────────────────────────
 app.listen(config.port, () => {
   console.log(`CropCare API running on port ${config.port} [${config.nodeEnv}]`);
+  console.log(`Health: http://localhost:${config.port}/health`);
 });
 
 export default app;
