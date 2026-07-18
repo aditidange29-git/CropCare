@@ -90,6 +90,38 @@ export class ProductsService {
     return updated;
   }
 
+  // ── Delete product ─────────────────────────────────────────────────────────
+  // Scoped to the owning dealer — a dealer cannot delete another dealer's product.
+  async deleteProduct(productId: string, dealerId: string) {
+    // Verify ownership first
+    const { data: existing, error: findError } = await supabase
+      .from('products')
+      .select('id')
+      .eq('id', productId)
+      .eq('dealer_id', dealerId)
+      .maybeSingle();
+
+    if (findError || !existing) {
+      throw Object.assign(new Error('Product not found or access denied.'), {
+        statusCode: 404,
+        code: 'NOT_FOUND',
+      });
+    }
+
+    const { error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', productId)
+      .eq('dealer_id', dealerId);
+
+    if (error) {
+      throw Object.assign(new Error(`Failed to delete product: ${error.message}`), {
+        statusCode: 500,
+        code: 'INTERNAL_ERROR',
+      });
+    }
+  }
+
   // ── Get dealer's own product catalog (paginated) ───────────────────────────
   async getDealerProducts(dealerId: string, page = 1, limit = 20) {
     const from = (page - 1) * limit;

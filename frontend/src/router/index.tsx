@@ -12,7 +12,11 @@ import DiagnosisPage from '../pages/Diagnosis/index.tsx';
 import RecommendationsPage from '../pages/Recommendations/index.tsx';
 import HistoryPage from '../pages/History/index.tsx';
 import SettingsPage from '../pages/Settings/index.tsx';
+import AiChatPage from '../pages/AiChat/index.tsx';
 import DealerDashboardPage from '../pages/DealerDashboard/index.tsx';
+import DealerLoginPage from '../pages/DealerLogin/index.tsx';
+import DealerSignupPage from '../pages/DealerSignup/index.tsx';
+import DealerPendingPage from '../pages/DealerPending/index.tsx';
 import AdminConsolePage from '../pages/AdminConsole/index.tsx';
 
 function RequireAuth({ children }: { children: React.ReactNode }): React.JSX.Element {
@@ -53,6 +57,13 @@ export default function AppRouter(): React.JSX.Element {
       <Route path="/recommendations/:diagnosisId" element={<RequireAuth><RecommendationsPage /></RequireAuth>} />
       <Route path="/history" element={<RequireAuth><HistoryPage /></RequireAuth>} />
       <Route path="/settings" element={<RequireAuth><SettingsPage /></RequireAuth>} />
+      <Route path="/ai-chat" element={<RequireAuth><AiChatPage /></RequireAuth>} />
+      <Route path="/ai-chat/:diagnosisId" element={<RequireAuth><AiChatPage /></RequireAuth>} />
+
+      {/* Dealer auth (public) */}
+      <Route path="/dealer/login" element={<DealerLoginPage />} />
+      <Route path="/dealer/signup" element={<DealerSignupPage />} />
+      <Route path="/dealer/pending" element={<DealerPendingPage />} />
 
       {/* Dealer (auth required) */}
       <Route path="/dealer/dashboard" element={<RequireAuth><DealerDashboardPage /></RequireAuth>} />

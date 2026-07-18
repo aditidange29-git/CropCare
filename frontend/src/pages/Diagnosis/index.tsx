@@ -274,19 +274,20 @@ export default function DiagnosisPage(): React.JSX.Element {
         </div>
       </div>
 
-      {/* Sticky bottom CTA */}
+      {/* Sticky bottom CTAs */}
       <div style={{
         position: 'sticky', bottom: 0,
         backgroundColor: '#ffffff', borderTop: '1.5px solid #e5e7eb',
-        padding: '16px 16px 24px',
+        padding: '12px 16px 24px',
+        display: 'flex', flexDirection: 'column', gap: '10px',
       }}>
         <button
           onClick={() => navigate(`/recommendations/${id}`)}
           style={{
-            width: '100%', height: '54px',
+            width: '100%', height: '52px',
             backgroundColor: '#1a936f', color: '#ffffff',
             border: 'none', borderRadius: '12px',
-            fontSize: '17px', fontWeight: 600, cursor: 'pointer',
+            fontSize: '16px', fontWeight: 600, cursor: 'pointer',
             boxShadow: '0 4px 12px rgba(26,147,111,0.25)',
             transition: 'background-color 0.15s ease',
           }}
@@ -294,6 +295,25 @@ export default function DiagnosisPage(): React.JSX.Element {
           onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#1a936f'; }}
         >
           {t('see_products')}
+        </button>
+        <button
+          onClick={() => navigate(`/ai-chat/${id}`)}
+          style={{
+            width: '100%', height: '48px',
+            backgroundColor: '#ffffff', color: '#114b5f',
+            border: '2px solid #114b5f', borderRadius: '12px',
+            fontSize: '15px', fontWeight: 600, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            transition: 'background-color 0.15s ease',
+          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#f0f4f8'; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#ffffff'; }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M17 8C8 10 5.9 16.17 3.82 19.34" stroke="#114b5f" strokeWidth="2" strokeLinecap="round" />
+            <path d="M17 8c2-4 5-6 5-6s-2 5-5 12c-2.5 5.5-7 8-7 8" stroke="#114b5f" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          Consult AI about this disease
         </button>
       </div>
     </div>

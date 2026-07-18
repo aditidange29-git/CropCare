@@ -23,6 +23,12 @@ router.patch('/products/:id', asyncHandler(async (req: Request, res) => {
   sendSuccess(res, { product: await productsService.update(req.params.id, dealerId, req.body) });
 }));
 
+router.delete('/products/:id', asyncHandler(async (req: Request, res) => {
+  const { sub: dealerId } = (req as AuthenticatedRequest).user;
+  await productsService.deleteProduct(req.params.id, dealerId);
+  sendSuccess(res, { deleted: true });
+}));
+
 router.get('/products', asyncHandler(async (req: Request, res) => {
   const { sub: dealerId } = (req as AuthenticatedRequest).user;
   const page = parseInt((req.query.page as string) ?? '1', 10);

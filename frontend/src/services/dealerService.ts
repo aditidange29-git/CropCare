@@ -32,3 +32,7 @@ export async function getDealerLeads(page = 1) {
 export async function getDealerAnalytics() {
   return api.get('/dealer/analytics');
 }
+
+export async function deleteProduct(id: string): Promise<void> {
+  await api.delete(`/dealer/products/${id}`);
+}

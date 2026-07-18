@@ -12,6 +12,7 @@ import diagnosesRouter from './modules/diagnoses/diagnoses.router.js';
 import recommendationsRouter from './modules/recommendations/recommendations.router.js';
 import productsRouter from './modules/products/products.router.js';
 import chatsRouter from './modules/chats/chats.router.js';
+import aiChatRouter from './modules/chats/ai-chat.router.js';
 import adminRouter from './modules/admin/admin.router.js';
 
 const app = express();
@@ -34,6 +35,7 @@ app.use('/api/v1/diagnoses', diagnosesRouter);
 app.use('/api/v1/recommendations', recommendationsRouter);
 app.use('/api/v1/dealer', productsRouter);
 app.use('/api/v1/chats', chatsRouter);
+app.use('/api/v1/ai-chat', aiChatRouter);
 app.use('/api/v1/admin', adminRouter);
 
 // Global error handler — returns standard response envelope

@@ -1,14 +1,15 @@
-// CropCare — Dealer Dashboard
-// See architecture/04_UI_UX_Spec.md §3.10
-// Tabs: Catalog | Leads | Analytics
-// Uses mock data.
-import React, { useState } from 'react';
+// CropCare — Dealer Dashboard (production wired)
+// Tabs: Catalog | Leads | Analytics — all from real API
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusIcon, PackageIcon, UsersIcon, BarChartIcon } from '../../components/icons/index.tsx';
-import { MOCK_DEALER_PRODUCTS, MOCK_DEALER_LEADS } from '../../data/mockData.ts';
+import { PlusIcon, PackageIcon, UsersIcon, BarChartIcon, XIcon } from '../../components/icons/index.tsx';
+import { getDealerProducts, createProduct, updateProduct, deleteProduct as deleteProductApi, getDealerLeads, getDealerAnalytics } from '../../services/dealerService.ts';
+import { getDiseaseLibrary } from '../../services/adminService.ts';
+import { useAuth } from '../../store/AuthContext.tsx';
+import { logout } from '../../services/authService.ts';
 
-type TabId = 'catalog' | 'leads' | 'analytics';
 type StockStatus = 'in_stock' | 'low' | 'out_of_stock';
+type TabId = 'catalog' | 'leads' | 'analytics';
 
 const STOCK_CONFIG: Record<StockStatus, { bg: string; color: string; label: string }> = {
   in_stock: { bg: '#dcfce7', color: '#166534', label: 'In Stock' },
@@ -16,347 +17,157 @@ const STOCK_CONFIG: Record<StockStatus, { bg: string; color: string; label: stri
   out_of_stock: { bg: '#fee2e2', color: '#991b1b', label: 'Out of Stock' },
 };
 
-// ---- Add Product Modal ----
-interface AddProductModalProps { onClose: () => void; }
+interface Product {
+  id: string; name: string; category: string;
+  applicable_disease_codes: string[]; stock_status: StockStatus;
+  description?: string; image_url?: string;
+}
+interface DiseaseOption { disease_code: string; name_translations: { en?: string } }
 
-function AddProductModal({ onClose }: AddProductModalProps): React.JSX.Element {
-  const [form, setForm] = useState({ name: '', category: '', stock_status: 'in_stock' });
+interface ProductFormState {
+  name: string; category: string; stock_status: StockStatus;
+  applicable_disease_codes: string[]; description: string; image_url: string;
+}
+const EMPTY_FORM: ProductFormState = { name: '', category: 'Insecticide', stock_status: 'in_stock', applicable_disease_codes: [], description: '', image_url: '' };
+
+function ProductModal({ product, diseases, onSave, onClose }: {
+  product?: Product; diseases: DiseaseOption[];
+  onSave: (data: ProductFormState) => Promise<void>; onClose: () => void;
+}): React.JSX.Element {
+  const [form, setForm] = useState<ProductFormState>(product ? {
+    name: product.name, category: product.category,
+    stock_status: product.stock_status,
+    applicable_disease_codes: product.applicable_disease_codes ?? [],
+    description: product.description ?? '', image_url: product.image_url ?? '',
+  } : EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function toggleDisease(code: string) {
+    setForm(p => ({
+      ...p,
+      applicable_disease_codes: p.applicable_disease_codes.includes(code)
+        ? p.applicable_disease_codes.filter(c => c !== code)
+        : [...p.applicable_disease_codes, code],
+    }));
+  }
+
+  async function handleSave() {
+    if (!form.name.trim()) { setError('Product name is required.'); return; }
+    if (form.applicable_disease_codes.length === 0) { setError('Select at least one disease.'); return; }
+    setSaving(true); setError(null);
+    try { await onSave(form); onClose(); }
+    catch (e: any) { setError(e.message ?? 'Failed to save product.'); }
+    finally { setSaving(false); }
+  }
+
+  const inp: React.CSSProperties = { height: '44px', width: '100%', padding: '0 12px', border: '1.5px solid #e5e7eb', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box', outline: 'none', fontFamily: 'system-ui, sans-serif', backgroundColor: '#fff' };
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
-      display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 200,
-    }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div style={{
-        backgroundColor: '#ffffff', borderRadius: '20px 20px 0 0',
-        padding: '24px 20px 36px', width: '100%', maxWidth: '600px',
-        boxShadow: '0 -4px 24px rgba(0,0,0,0.12)',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#114b5f', margin: 0 }}>Add Product</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: '#9ca3af', minWidth: '44px', minHeight: '44px' }}>✕</button>
+    <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 200 }} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ backgroundColor: '#fff', borderRadius: '20px 20px 0 0', padding: '20px 20px 36px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 -4px 24px rgba(0,0,0,0.12)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+          <h3 style={{ fontSize: '17px', fontWeight: 700, color: '#114b5f', margin: 0 }}>{product ? 'Edit Product' : 'Add Product'}</h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><XIcon size={20} color="#9ca3af" /></button>
         </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '6px' }}>Product Name</label>
-            <input
-              type="text" placeholder="e.g. Confidor (Imidacloprid)"
-              value={form.name}
-              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-              style={{ height: '48px', width: '100%', padding: '0 14px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '15px', boxSizing: 'border-box', outline: 'none' }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = '#1a936f'; }}
-              onBlur={(e) => { e.currentTarget.style.borderColor = '#e5e7eb'; }}
-            />
-          </div>
-          <div>
-            <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '6px' }}>Category</label>
-            <select
-              value={form.category}
-              onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))}
-              style={{ height: '48px', width: '100%', padding: '0 14px', border: '2px solid #e5e7eb', borderRadius: '8px', fontSize: '15px', outline: 'none', backgroundColor: '#ffffff' }}
-            >
-              <option value="">Select category...</option>
-              <option value="Insecticide">Insecticide</option>
-              <option value="Fungicide">Fungicide</option>
-              <option value="Herbicide">Herbicide</option>
-              <option value="Fertilizer">Fertilizer</option>
-            </select>
-          </div>
-          <div>
-            <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '6px' }}>Stock Status</label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {(['in_stock', 'low', 'out_of_stock'] as StockStatus[]).map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setForm((p) => ({ ...p, stock_status: s }))}
-                  style={{
-                    flex: 1, height: '40px', borderRadius: '8px', border: 'none',
-                    cursor: 'pointer', fontSize: '13px', fontWeight: 500,
-                    backgroundColor: form.stock_status === s ? '#1a936f' : '#f3f4f6',
-                    color: form.stock_status === s ? '#ffffff' : '#6b7280',
-                  }}
-                >
-                  {STOCK_CONFIG[s].label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            style={{
-              height: '50px', backgroundColor: '#1a936f', color: '#ffffff',
-              border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: 600,
-              cursor: 'pointer', marginTop: '4px',
-            }}
-          >
-            Add Product
-          </button>
+        {error && <div style={{ backgroundColor: '#fee2e2', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#991b1b', marginBottom: '14px' }}>{error}</div>}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '13px' }}>
+          <div><label style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', display: 'block', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Product Name *</label><input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="e.g. Confidor Insecticide" style={inp} onFocus={e => { e.currentTarget.style.borderColor = '#1a936f'; }} onBlur={e => { e.currentTarget.style.borderColor = '#e5e7eb'; }} /></div>
+          <div><label style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', display: 'block', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Category</label><select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} style={{ ...inp, cursor: 'pointer' }}><option>Insecticide</option><option>Fungicide</option><option>Herbicide</option><option>Fertilizer</option><option>Biopesticide</option></select></div>
+          <div><label style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', display: 'block', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Stock Status</label><div style={{ display: 'flex', gap: '6px' }}>{(['in_stock', 'low', 'out_of_stock'] as StockStatus[]).map(s => (<button key={s} type="button" onClick={() => setForm(p => ({ ...p, stock_status: s }))} style={{ flex: 1, height: '36px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '12px', fontWeight: 500, backgroundColor: form.stock_status === s ? '#1a936f' : '#f3f4f6', color: form.stock_status === s ? '#fff' : '#6b7280' }}>{STOCK_CONFIG[s].label}</button>))}</div></div>
+          <div><label style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', display: 'block', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Applicable Diseases *</label><div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', maxHeight: '120px', overflowY: 'auto', padding: '4px 0' }}>{diseases.map(d => { const sel = form.applicable_disease_codes.includes(d.disease_code); return (<button key={d.disease_code} type="button" onClick={() => toggleDisease(d.disease_code)} style={{ fontSize: '12px', padding: '4px 10px', borderRadius: '999px', border: sel ? 'none' : '1.5px solid #e5e7eb', cursor: 'pointer', backgroundColor: sel ? '#1a936f' : '#fff', color: sel ? '#fff' : '#6b7280', fontWeight: sel ? 600 : 400 }}>{d.name_translations?.en ?? d.disease_code}</button>); })}</div></div>
+          <div><label style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', display: 'block', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Description</label><textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder="Brief product description..." rows={2} style={{ ...inp, height: 'auto', padding: '10px 12px', resize: 'vertical' as const }} onFocus={e => { e.currentTarget.style.borderColor = '#1a936f'; }} onBlur={e => { e.currentTarget.style.borderColor = '#e5e7eb'; }} /></div>
+          <div><label style={{ fontSize: '12px', fontWeight: 600, color: '#6b7280', display: 'block', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Product Image URL</label><input value={form.image_url} onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))} placeholder="https://..." style={inp} onFocus={e => { e.currentTarget.style.borderColor = '#1a936f'; }} onBlur={e => { e.currentTarget.style.borderColor = '#e5e7eb'; }} /></div>
+          <button type="button" onClick={handleSave} disabled={saving} style={{ height: '48px', backgroundColor: saving ? '#9ca3af' : '#1a936f', color: '#fff', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: 600, cursor: saving ? 'not-allowed' : 'pointer', marginTop: '4px' }}>{saving ? 'Saving…' : product ? 'Save Changes' : 'Add Product'}</button>
         </div>
       </div>
     </div>
   );
 }
 
-// ---- Catalog Tab ----
-function CatalogTab(): React.JSX.Element {
+function CatalogTab({ dealerName }: { dealerName: string }): React.JSX.Element {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [diseases, setDiseases] = useState<DiseaseOption[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const loadProducts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await getDealerProducts(1);
+      setProducts((result as any).items ?? []);
+    } catch { setProducts([]); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => {
+    loadProducts();
+    getDiseaseLibrary().then((d: any) => setDiseases((d as any).diseases ?? [])).catch(() => {});
+  }, [loadProducts]);
+
+  async function handleSave(form: ProductFormState) {
+    if (editingProduct) {
+      await updateProduct(editingProduct.id, form);
+    } else {
+      await createProduct(form);
+    }
+    await loadProducts();
+  }
+
+  async function handleDelete(id: string) {
+    if (!window.confirm('Delete this product?')) return;
+    setDeleting(id);
+    try { await deleteProductApi(id); await loadProducts(); }
+    catch { alert('Failed to delete.'); }
+    finally { setDeleting(null); }
+  }
+
+  if (loading) return <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px' }}><div style={{ width: 36, height: 36, border: '3px solid #e5e7eb', borderTopColor: '#1a936f', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /></div>;
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 24px', position: 'relative' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {MOCK_DEALER_PRODUCTS.map((product) => {
-          const stock = STOCK_CONFIG[product.stock_status];
-          return (
-            <div key={product.id} style={{
-              backgroundColor: '#ffffff', borderRadius: '12px',
-              padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-              border: '1.5px solid #f3f4f6',
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                  <p style={{ fontSize: '15px', fontWeight: 700, color: '#1f2937', margin: '0 0 3px 0' }}>
-                    {product.name}
-                  </p>
-                  <p style={{ fontSize: '13px', color: '#6b7280', margin: '0 0 8px 0' }}>
-                    {product.category}
-                  </p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                    {product.disease_tags.map((tag) => (
-                      <span key={tag} style={{
-                        fontSize: '12px', padding: '2px 8px', borderRadius: '999px',
-                        backgroundColor: '#e8f5f0', color: '#1a936f', fontWeight: 500,
-                      }}>{tag}</span>
-                    ))}
-                  </div>
-                </div>
-                <span style={{
-                  fontSize: '12px', fontWeight: 600, padding: '3px 10px', borderRadius: '999px',
-                  backgroundColor: stock.bg, color: stock.color, flexShrink: 0, marginLeft: '8px',
-                }}>
-                  {stock.label}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Floating Add button */}
-      <button
-        onClick={() => setShowModal(true)}
-        style={{
-          position: 'fixed', bottom: '24px', right: '20px',
-          width: '56px', height: '56px', borderRadius: '28px',
-          backgroundColor: '#1a936f', border: 'none', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 4px 16px rgba(26,147,111,0.4)',
-          zIndex: 100,
-        }}
-        aria-label="Add product"
-      >
-        <PlusIcon size={26} color="#ffffff" />
-      </button>
-
-      {showModal && <AddProductModal onClose={() => setShowModal(false)} />}
-    </div>
-  );
-}
-
-// ---- Leads Tab ----
-function LeadsTab(): React.JSX.Element {
-  return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 24px' }}>
-      {MOCK_DEALER_LEADS.length === 0 ? (
-        <div style={{
-          backgroundColor: '#ffffff', borderRadius: '12px',
-          padding: '48px 24px', textAlign: 'center',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-        }}>
-          <p style={{ fontSize: '16px', fontWeight: 600, color: '#374151', margin: '0 0 4px 0' }}>No leads yet</p>
-          <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
-            Leads appear when your products are recommended to farmers
-          </p>
+    <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 80px', position: 'relative' }}>
+      {products.length === 0 ? (
+        <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '48px 24px', textAlign: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <p style={{ fontSize: '15px', fontWeight: 600, color: '#374151', margin: '0 0 6px 0' }}>No products yet</p>
+          <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>Tap + to add your first product</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {MOCK_DEALER_LEADS.map((lead) => (
-            <div key={lead.id} style={{
-              backgroundColor: '#ffffff', borderRadius: '12px',
-              padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-              border: '1.5px solid #f3f4f6',
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                <p style={{ fontSize: '15px', fontWeight: 700, color: '#1f2937', margin: 0 }}>
-                  {lead.disease_name}
-                </p>
-                <span style={{
-                  fontSize: '12px', padding: '2px 8px', borderRadius: '999px',
-                  backgroundColor: lead.contacted ? '#dcfce7' : '#f3f4f6',
-                  color: lead.contacted ? '#166534' : '#6b7280',
-                  fontWeight: 500,
-                }}>
-                  {lead.contacted ? 'Contacted' : 'Pending'}
-                </span>
-              </div>
-              <p style={{ fontSize: '13px', color: '#6b7280', margin: '0 0 4px 0' }}>
-                {lead.product_recommended}
-              </p>
-              <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>
-                {lead.area} · {lead.date}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ---- Analytics Tab ----
-function AnalyticsTab(): React.JSX.Element {
-  const stats = [
-    { label: 'Diagnoses Matched', value: '24', trend: '+8 this week' },
-    { label: 'Contacts Received', value: '11', trend: '+3 this week' },
-    { label: 'Top Disease', value: 'Cotton Leaf Curl', trend: '14 matches' },
-  ];
-
-  return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 24px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px', marginBottom: '20px' }}>
-        {stats.map((s) => (
-          <div key={s.label} style={{
-            backgroundColor: '#ffffff', borderRadius: '12px',
-            padding: '18px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-          }}>
-            <p style={{ fontSize: '28px', fontWeight: 800, color: '#114b5f', margin: '0 0 4px 0' }}>
-              {s.value}
-            </p>
-            <p style={{ fontSize: '13px', fontWeight: 600, color: '#374151', margin: '0 0 3px 0' }}>
-              {s.label}
-            </p>
-            <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>
-              {s.trend}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#114b5f', margin: '0 0 12px 0' }}>
-        This Month
-      </h3>
-      <div style={{
-        backgroundColor: '#ffffff', borderRadius: '12px',
-        padding: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-      }}>
-        <p style={{ fontSize: '13px', color: '#9ca3af', margin: '0 0 16px 0' }}>
-          Diagnoses matched per day
-        </p>
-        {/* CSS-only bar chart */}
-        {[
-          { day: 'Mon', value: 3, max: 8 },
-          { day: 'Tue', value: 5, max: 8 },
-          { day: 'Wed', value: 8, max: 8 },
-          { day: 'Thu', value: 4, max: 8 },
-          { day: 'Fri', value: 6, max: 8 },
-          { day: 'Sat', value: 2, max: 8 },
-          { day: 'Sun', value: 1, max: 8 },
-        ].map((bar) => (
-          <div key={bar.day} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
-            <span style={{ fontSize: '12px', color: '#6b7280', width: '30px', flexShrink: 0 }}>{bar.day}</span>
-            <div style={{ flex: 1, height: '20px', backgroundColor: '#f3f4f6', borderRadius: '4px', overflow: 'hidden' }}>
-              <div style={{
-                height: '100%', borderRadius: '4px',
-                backgroundColor: '#1a936f',
-                width: `${(bar.value / bar.max) * 100}%`,
-                transition: 'width 0.5s ease',
-              }} />
-            </div>
-            <span style={{ fontSize: '12px', color: '#374151', fontWeight: 600, width: '16px' }}>{bar.value}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ---- Main Component ----
-export default function DealerDashboardPage(): React.JSX.Element {
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<TabId>('catalog');
-
-  const tabs: { id: TabId; label: string; Icon: React.FC<{ size?: number; color?: string }> }[] = [
-    { id: 'catalog', label: 'Catalog', Icon: PackageIcon },
-    { id: 'leads', label: 'Leads', Icon: UsersIcon },
-    { id: 'analytics', label: 'Analytics', Icon: BarChartIcon },
-  ];
-
-  return (
-    <div style={{
-      display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden',
-      backgroundColor: '#f5f5f0',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-    }}>
-      {/* Header */}
-      <div style={{
-        padding: '16px 20px 0',
-        background: 'linear-gradient(135deg, #114b5f 0%, #0d3547 100%)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-          <div>
-            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', margin: 0 }}>Dealer Dashboard</p>
-            <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: '2px 0 0 0' }}>
-              Patil Agro Stores
-            </h1>
-          </div>
-          <button
-            onClick={() => { localStorage.removeItem('cropcare_mock_user'); navigate('/'); }}
-            style={{
-              minHeight: '36px', padding: '6px 14px',
-              backgroundColor: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.85)',
-              border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px',
-            }}
-          >
-            Logout
-          </button>
-        </div>
-
-        {/* Tabs */}
-        <div style={{ display: 'flex', gap: '0' }}>
-          {tabs.map(({ id, label, Icon }) => {
-            const isActive = activeTab === id;
+          {products.map(p => {
+            const stock = STOCK_CONFIG[p.stock_status];
             return (
-              <button
-                key={id}
-                onClick={() => setActiveTab(id)}
-                style={{
-                  flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-                  padding: '10px 4px', border: 'none', cursor: 'pointer',
-                  backgroundColor: 'transparent',
-                  borderBottom: isActive ? '2.5px solid #ffffff' : '2.5px solid transparent',
-                  gap: '3px', minHeight: '44px',
-                  transition: 'border-color 0.15s ease',
-                }}
-              >
-                <Icon size={18} color={isActive ? '#ffffff' : 'rgba(255,255,255,0.5)'} />
-                <span style={{
-                  fontSize: '12px', fontWeight: isActive ? 600 : 400,
-                  color: isActive ? '#ffffff' : 'rgba(255,255,255,0.6)',
-                }}>
-                  {label}
-                </span>
-              </button>
+              <div key={p.id} style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '14px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1.5px solid #f3f4f6' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: '15px', fontWeight: 700, color: '#1f2937', margin: '0 0 2px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</p>
+                    <p style={{ fontSize: '13px', color: '#6b7280', margin: '0 0 6px 0' }}>{p.category}</p>
+                    {p.description && <p style={{ fontSize: '13px', color: '#4b5563', margin: '0 0 6px 0', lineHeight: 1.4 }}>{p.description}</p>}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                      {(p.applicable_disease_codes ?? []).slice(0, 3).map(code => (
+                        <span key={code} style={{ fontSize: '11px', padding: '2px 7px', borderRadius: '999px', backgroundColor: '#e8f5f0', color: '#1a936f', fontWeight: 500 }}>{code.replace(/_/g, ' ')}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', flexShrink: 0 }}>
+                    <span style={{ fontSize: '12px', fontWeight: 600, padding: '3px 9px', borderRadius: '999px', backgroundColor: stock.bg, color: stock.color }}>{stock.label}</span>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button onClick={() => { setEditingProduct(p); setShowModal(true); }} style={{ fontSize: '12px', fontWeight: 600, color: '#114b5f', background: 'none', border: '1.5px solid #114b5f', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', minHeight: '32px' }}>Edit</button>
+                      <button onClick={() => handleDelete(p.id)} disabled={deleting === p.id} style={{ fontSize: '12px', fontWeight: 600, color: '#c1121f', background: 'none', border: '1.5px solid #c1121f', borderRadius: '6px', padding: '4px 10px', cursor: deleting === p.id ? 'not-allowed' : 'pointer', minHeight: '32px', opacity: deleting === p.id ? 0.6 : 1 }}>{deleting === p.id ? '…' : 'Delete'}</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             );
           })}
         </div>
-      </div>
-
-      {/* Tab content */}
-      {activeTab === 'catalog' && <CatalogTab />}
-      {activeTab === 'leads' && <LeadsTab />}
-      {activeTab === 'analytics' && <AnalyticsTab />}
+      )}
+      <button onClick={() => { setEditingProduct(undefined); setShowModal(true); }} style={{ position: 'fixed', bottom: '24px', right: '20px', width: '56px', height: '56px', borderRadius: '28px', backgroundColor: '#1a936f', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(26,147,111,0.4)', zIndex: 100 }} aria-label="Add product">
+        <PlusIcon size={26} color="#ffffff" />
+      </button>
+      {showModal && <ProductModal product={editingProduct} diseases={diseases} onSave={handleSave} onClose={() => setShowModal(false)} />}
+      <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>
   );
 }

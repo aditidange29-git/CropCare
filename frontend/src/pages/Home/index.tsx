@@ -74,6 +74,50 @@ function HomeTabContent({ userName }: { userName: string }): React.JSX.Element {
           </div>
         </button>
 
+        {/* Ask AI section */}
+        <button
+          onClick={() => navigate('/ai-chat')}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: '14px',
+            padding: '16px 18px',
+            backgroundColor: '#ffffff',
+            border: '1.5px solid #e5e7eb',
+            borderRadius: '12px',
+            cursor: 'pointer',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+            textAlign: 'left',
+            transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            const btn = e.currentTarget as HTMLButtonElement;
+            btn.style.borderColor = '#1a936f';
+            btn.style.boxShadow = '0 2px 8px rgba(26,147,111,0.15)';
+          }}
+          onMouseLeave={(e) => {
+            const btn = e.currentTarget as HTMLButtonElement;
+            btn.style.borderColor = '#e5e7eb';
+            btn.style.boxShadow = '0 1px 4px rgba(0,0,0,0.06)';
+          }}
+          aria-label="Ask AI a farming question"
+        >
+          <div style={{
+            width: '44px', height: '44px', borderRadius: '12px',
+            background: 'linear-gradient(135deg, #1a936f, #114b5f)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+          }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M17 8C8 10 5.9 16.17 3.82 19.34" stroke="white" strokeWidth="2" strokeLinecap="round" />
+              <path d="M17 8c2-4 5-6 5-6s-2 5-5 12c-2.5 5.5-7 8-7 8" stroke="white" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </div>
+          <div>
+            <p style={{ fontSize: '15px', fontWeight: 700, color: '#114b5f', margin: '0 0 2px 0' }}>Ask AI</p>
+            <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>
+              Ask any farming or crop disease question
+            </p>
+          </div>
+        </button>
+
         {/* Recent Diagnoses */}
         <div>
           <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#114b5f', margin: '0 0 12px 0' }}>{t('recent_diagnoses')}</h2>
