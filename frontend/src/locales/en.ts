@@ -1,0 +1,99 @@
+export const en = {
+  // Common
+  app_name: 'CropCare',
+  continue: 'Continue',
+  back: 'Back',
+  retry: 'Try Again',
+  loading: 'Loading...',
+  error_generic: 'Something went wrong. Please try again.',
+  no_internet: 'No internet connection',
+  version: 'App Version',
+  logout: 'Logout',
+  your_account: 'Your Account',
+  preferences: 'Preferences',
+  about: 'About',
+  change: 'Change',
+  language: 'Language',
+
+  // Language Select
+  choose_language: 'Choose your language',
+  choose_language_sub: 'अपनी भाषा चुनें · आपली भाषा निवडा',
+
+  // Login
+  welcome: 'Welcome',
+  login_subtitle: 'Enter your details to continue',
+  your_name: 'Your Name',
+  name_placeholder: 'e.g. Ramesh Patil',
+  phone_number: 'Phone Number',
+  phone_placeholder: '+91 XXXXX XXXXX',
+  name_required: 'Please enter your name',
+  phone_required: 'Please enter your phone number',
+  phone_invalid: 'Phone number must be at least 10 digits',
+  login_failed: 'Login failed. Check your connection.',
+  signing_in: 'Signing in...',
+  login_note: 'Your phone number is your account — no password needed',
+
+  // Home
+  good_morning: 'Good morning',
+  good_afternoon: 'Good afternoon',
+  good_evening: 'Good evening',
+  scan_crop: 'Scan Crop',
+  scan_crop_sub: 'Take a photo to diagnose disease',
+  recent_diagnoses: 'Recent Diagnoses',
+  no_scans_yet: 'No scans yet',
+  no_scans_sub: 'Tap Scan Crop to begin your first diagnosis',
+  history: 'History',
+  settings: 'Settings',
+  home: 'Home',
+
+  // Camera
+  scan_crop_title: 'Scan Crop',
+  camera_guidance: 'Position the affected leaf clearly in frame, in good light',
+  take_photo: 'Take Photo',
+  upload_gallery: 'Upload from Gallery',
+  analyze_photo: 'Analyze This Photo',
+  choose_different: 'Choose Different Photo',
+  analyzing: 'Analyzing your crop...',
+  analyzing_sub: 'This may take up to 10 seconds',
+  upload_failed: 'Upload failed. Please try again.',
+  camera_browser_note: 'Native camera is only available in the Android app.\n\nClick OK to select from gallery instead.',
+  camera_hint: 'Position the affected leaf clearly in frame, in good light',
+  our_best_guess: 'Our best guess',
+  verify_expert: 'verify with an agricultural expert before taking action.',
+
+  // Diagnosis
+  diagnosis_result: 'Diagnosis Result',
+  high_confidence: 'High Confidence',
+  medium_confidence: 'Medium Confidence',
+  low_confidence: 'Low Confidence',
+  low_confidence_warning: 'Our best guess — verify with an agricultural expert before taking action.',
+  treatment_guide: 'Treatment Guide',
+  organic_remedies: 'Organic Remedies',
+  chemical_treatment: 'Chemical Treatment',
+  see_products: 'See Recommended Products',
+  loading_diagnosis: 'Loading diagnosis...',
+  diagnosis_not_found: 'Diagnosis not found.',
+
+  // Recommendations
+  nearby_products: 'Nearby Products',
+  for_disease: 'For',
+  dealers_found: 'dealers found near you',
+  dealer_found: 'dealer found near you',
+  no_dealers: 'No nearby dealers found',
+  no_dealers_sub: 'No dealers near you stock a specific product yet. Try searching in your local market.',
+  call: 'Call',
+  whatsapp: 'WhatsApp',
+  in_stock: 'In Stock',
+  low_stock: 'Low Stock',
+  out_of_stock: 'Out of Stock',
+  km_away: 'km away',
+  loading_recs: 'Loading recommendations...',
+
+  // History
+  diagnosis_history: 'Diagnosis History',
+  no_diagnoses: 'No diagnoses found',
+  no_diagnoses_sub: 'Your past diagnoses will appear here',
+
+  // Settings
+  account: 'Account',
+};

@@ -5,6 +5,7 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeftIcon, CameraIcon, UploadIcon } from '../../components/icons/index.tsx';
+import { useT } from '../../store/LanguageContext.tsx';
 import { submitDiagnosis } from '../../services/diagnosisService.ts';
 import { ApiError } from '../../services/api.ts';
 
@@ -12,6 +13,7 @@ type UploadState = 'idle' | 'preview' | 'submitting';
 
 export default function CameraPage(): React.JSX.Element {
   const navigate = useNavigate();
+  const t = useT();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadState, setUploadState] = useState<UploadState>('idle');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -56,7 +58,7 @@ export default function CameraPage(): React.JSX.Element {
       const result = await submitDiagnosis(selectedFile, lat, lng);
       navigate(`/diagnosis/${result.diagnosis_id}`, { replace: true });
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : 'Upload failed. Please try again.';
+      const msg = err instanceof ApiError ? err.message : t('upload_failed');
       setError(msg);
       setUploadState('preview');
     }
@@ -77,7 +79,7 @@ export default function CameraPage(): React.JSX.Element {
         <button onClick={() => navigate('/home')} style={{ minWidth: '44px', minHeight: '44px', background: 'rgba(255,255,255,0.15)', border: 'none', cursor: 'pointer', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} aria-label="Go back to home">
           <ChevronLeftIcon size={24} color="#ffffff" />
         </button>
-        <span style={{ fontSize: '17px', fontWeight: 600, color: '#ffffff' }}>Scan Crop</span>
+        <span style={{ fontSize: '17px', fontWeight: 600, color: '#ffffff' }}>{t('scan_crop')}</span>
         <div style={{ width: '44px' }} />
       </div>
 
@@ -92,7 +94,7 @@ export default function CameraPage(): React.JSX.Element {
               <CameraIcon size={52} color="rgba(255,255,255,0.2)" />
             </div>
             <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.65)', textAlign: 'center', maxWidth: '240px', lineHeight: 1.5 }}>
-              Position the affected leaf clearly in frame, in good light
+              {t('camera_hint')}
             </p>
           </div>
         )}
@@ -102,8 +104,8 @@ export default function CameraPage(): React.JSX.Element {
             {uploadState === 'submitting' && (
               <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.65)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
                 <div style={{ width: '56px', height: '56px', border: '3px solid rgba(255,255,255,0.3)', borderTopColor: '#1a936f', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                <p style={{ fontSize: '16px', color: '#ffffff', margin: 0, fontWeight: 500 }}>Analyzing your crop...</p>
-                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', margin: 0 }}>This may take up to 10 seconds</p>
+                <p style={{ fontSize: '16px', color: '#ffffff', margin: 0, fontWeight: 500 }}>{t('analyzing')}</p>
+                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', margin: 0 }}>{t('analyzing_sub')}</p>
               </div>
             )}
           </div>
@@ -120,20 +122,20 @@ export default function CameraPage(): React.JSX.Element {
         {uploadState === 'idle' && (
           <>
             <button onClick={handleCameraClick} style={{ height: '56px', width: '100%', backgroundColor: '#1a936f', color: '#ffffff', border: 'none', borderRadius: '12px', fontSize: '17px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-              <CameraIcon size={22} color="#ffffff" /> Take Photo
+              <CameraIcon size={22} color="#ffffff" /> {t('take_photo')}
             </button>
             <button onClick={handleGalleryClick} style={{ height: '56px', width: '100%', backgroundColor: 'rgba(255,255,255,0.1)', color: '#ffffff', border: '1.5px solid rgba(255,255,255,0.2)', borderRadius: '12px', fontSize: '17px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-              <UploadIcon size={22} color="#ffffff" /> Upload from Gallery
+              <UploadIcon size={22} color="#ffffff" /> {t('upload_gallery')}
             </button>
           </>
         )}
         {uploadState === 'preview' && (
           <>
             <button onClick={handleSubmit} style={{ height: '56px', width: '100%', backgroundColor: '#1a936f', color: '#ffffff', border: 'none', borderRadius: '12px', fontSize: '17px', fontWeight: 600, cursor: 'pointer' }}>
-              Analyze This Photo
+              {t('analyze_photo')}
             </button>
             <button onClick={handleRetake} style={{ height: '48px', width: '100%', backgroundColor: 'transparent', color: 'rgba(255,255,255,0.7)', border: 'none', borderRadius: '8px', fontSize: '15px', cursor: 'pointer' }}>
-              Choose Different Photo
+              {t('choose_different')}
             </button>
           </>
         )}

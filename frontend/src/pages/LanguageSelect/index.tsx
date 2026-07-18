@@ -1,9 +1,10 @@
 // CropCare — Language Select Screen
 // See architecture/04_UI_UX_Spec.md §3.2
-// Stores cropcare_language in localStorage, navigates to /login
+// Uses LanguageContext to persist language, navigates to /login
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRightIcon } from '../../components/icons/index.tsx';
+import { useLang } from '../../store/LanguageContext.tsx';
 
 interface LanguageOption {
   code: string;
@@ -20,9 +21,10 @@ const LANGUAGES: LanguageOption[] = [
 
 export default function LanguageSelectPage(): React.JSX.Element {
   const navigate = useNavigate();
+  const { setLang } = useLang();
 
   function handleSelect(code: string): void {
-    localStorage.setItem('cropcare_language', code);
+    setLang(code as 'en' | 'hi' | 'mr');
     navigate('/login');
   }
 

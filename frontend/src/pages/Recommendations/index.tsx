@@ -7,25 +7,33 @@ import { ChevronLeftIcon, PhoneIcon, MessageCircleIcon, MapPinIcon, AlertTriangl
 import { getRecommendations, recordContact, RecommendationItem } from '../../services/recommendationService.ts';
 import { getDiagnosisById } from '../../services/diagnosisService.ts';
 import { ApiError } from '../../services/api.ts';
+import { useT } from '../../store/LanguageContext.tsx';
 
 type StockStatus = 'in_stock' | 'low' | 'out_of_stock';
 
-interface StockConfig { bg: string; color: string; label: string; }
+interface StockConfig { bg: string; color: string; }
 const STOCK_CONFIG: Record<StockStatus, StockConfig> = {
-  in_stock: { bg: '#dcfce7', color: '#166534', label: 'In Stock' },
-  low: { bg: '#fef9c3', color: '#854d0e', label: 'Low Stock' },
-  out_of_stock: { bg: '#fee2e2', color: '#991b1b', label: 'Out of Stock' },
+  in_stock: { bg: '#dcfce7', color: '#166534' },
+  low: { bg: '#fef9c3', color: '#854d0e' },
+  out_of_stock: { bg: '#fee2e2', color: '#991b1b' },
 };
 
 export default function RecommendationsPage(): React.JSX.Element {
   const navigate = useNavigate();
   const { diagnosisId } = useParams<{ diagnosisId: string }>();
+  const t = useT();
 
   const [products, setProducts] = useState<RecommendationItem[]>([]);
   const [diseaseName, setDiseaseName] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [contactingId, setContactingId] = useState<string | null>(null);
+
+  const stockLabel = (status: StockStatus): string => {
+    if (status === 'in_stock') return t('in_stock');
+    if (status === 'low') return t('low_stock');
+    return t('out_of_stock');
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -97,7 +105,7 @@ export default function RecommendationsPage(): React.JSX.Element {
           animation: 'spin 0.8s linear infinite',
         }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        <p style={{ fontSize: '15px', color: '#6b7280', margin: 0 }}>Loading recommendations...</p>
+        <p style={{ fontSize: '15px', color: '#6b7280', margin: 0 }}>{t('loading_recs')}</p>
       </div>
     );
   }
@@ -135,7 +143,7 @@ export default function RecommendationsPage(): React.JSX.Element {
               fontSize: '15px', fontWeight: 600, cursor: 'pointer',
             }}
           >
-            Try Again
+            {t('retry')}
           </button>
         </div>
       </div>
@@ -168,11 +176,11 @@ export default function RecommendationsPage(): React.JSX.Element {
         </button>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1 style={{ fontSize: '17px', fontWeight: 700, color: '#ffffff', margin: 0 }}>
-            Nearby Products
+            {t('nearby_products')}
           </h1>
           {diseaseName ? (
             <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', margin: '1px 0 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              For {diseaseName}
+              {t('for_disease') + ' '}{diseaseName}
             </p>
           ) : null}
         </div>
@@ -195,16 +203,16 @@ export default function RecommendationsPage(): React.JSX.Element {
               <MapPinIcon size={36} color="#9ca3af" />
             </div>
             <p style={{ fontSize: '16px', fontWeight: 600, color: '#374151', margin: 0, textAlign: 'center' }}>
-              No nearby dealers found
+              {t('no_dealers')}
             </p>
             <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0, textAlign: 'center', lineHeight: 1.5 }}>
-              No dealers near you stock a specific product yet. Try searching in your local market for insecticide treatments.
+              {t('no_dealers_sub')}
             </p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <p style={{ fontSize: '13px', color: '#6b7280', margin: '0 0 4px 0' }}>
-              {products.length} dealer{products.length !== 1 ? 's' : ''} found near you
+              {products.length} {products.length !== 1 ? t('dealers_found') : t('dealer_found')}
             </p>
             {products.map((item) => {
               const stockConfig = STOCK_CONFIG[item.stock_status];
@@ -237,7 +245,7 @@ export default function RecommendationsPage(): React.JSX.Element {
                       borderRadius: '999px', flexShrink: 0,
                       backgroundColor: stockConfig.bg, color: stockConfig.color,
                     }}>
-                      {stockConfig.label}
+                      {stockLabel(item.stock_status)}
                     </span>
                   </div>
 
@@ -249,7 +257,7 @@ export default function RecommendationsPage(): React.JSX.Element {
                     }}>
                       <MapPinIcon size={14} color="#9ca3af" />
                       <span style={{ fontSize: '13px', color: '#9ca3af' }}>
-                        {item.distance_km} km away
+                        {item.distance_km} {t('km_away')}
                       </span>
                     </div>
                   )}
@@ -272,7 +280,7 @@ export default function RecommendationsPage(): React.JSX.Element {
                       onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#e8f5f0'; }}
                     >
                       <PhoneIcon size={16} color="#1a936f" />
-                      {isCallingThis ? '...' : 'Call'}
+                      {isCallingThis ? '...' : t('call')}
                     </button>
                     {item.dealer.whatsapp_number ? (
                       <button
@@ -291,7 +299,7 @@ export default function RecommendationsPage(): React.JSX.Element {
                         onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#e8f5e0'; }}
                       >
                         <MessageCircleIcon size={16} color="#16a34a" />
-                        {isWAing ? '...' : 'WhatsApp'}
+                        {isWAing ? '...' : t('whatsapp')}
                       </button>
                     ) : (
                       <div style={{ flex: 1 }} />

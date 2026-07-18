@@ -125,19 +125,22 @@ export class DiagnosesService {
       });
     }
 
-    // ── 6. Trigger recommendation generation (non-blocking) ────────────────
+    // ── 6. Generate recommendations synchronously (so they exist on first load) ──
     if (hasConfidentMatch && diseaseRow) {
-      // Fire-and-forget — recommendations appear when the client polls GET /:id
-      recommendationsService
-        .generateAndSave(
-          savedDiagnosis.id,
-          aiResult.disease_code,
-          params.locationLat,
-          params.locationLng
-        )
-        .catch((err) => {
-          console.error('[DiagnosesService] Recommendation generation failed:', err);
-        });
+      try {
+        await Promise.race([
+          recommendationsService.generateAndSave(
+            savedDiagnosis.id,
+            aiResult.disease_code,
+            params.locationLat,
+            params.locationLng
+          ),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 8000)),
+        ]);
+      } catch (err) {
+        // Non-fatal — diagnosis is still returned even if recommendations fail
+        console.error('[DiagnosesService] Recommendation generation failed:', err);
+      }
     }
 
     // ── 7. Shape and return ─────────────────────────────────────────────────

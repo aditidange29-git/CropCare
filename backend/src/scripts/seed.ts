@@ -176,7 +176,18 @@ async function main() {
         organic: ['Use silicon fertilizer to strengthen cell walls', 'Avoid excess nitrogen', 'Maintain proper field drainage', 'Use blast-resistant varieties'],
         chemical: ['Tricyclazole 75 WP @ 0.6g/litre', 'Isoprothiolane 40 EC @ 1.5ml/litre', 'Carbendazim 50 WP @ 1g/litre at boot stage']
       }
-    }
+    },
+    {
+      disease_code: 'cotton_pink_bollworm',
+      crop_type: 'cotton',
+      name_translations: { en: 'Pink Bollworm', hi: 'गुलाबी बोलवर्म', mr: 'गुलाबी बोंड अळी' },
+      symptoms: { en: ['Pink larvae inside cotton boll', 'Damaged seeds inside boll', 'Webbing inside boll', 'Premature boll opening', 'Circular entry holes in boll'] },
+      causes: 'Pectinophora gossypiella (pink bollworm) is a major cotton pest. Pink larvae bore into bolls and feed on seeds, causing severe yield loss.',
+      treatment_protocol: {
+        organic: ['Install pheromone traps at 5 per acre for mass trapping', 'Release Trichogramma parasitoids (50,000/acre/week)', 'Apply NSKE 5% spray', 'Deep plowing after harvest to destroy pupae', 'Avoid ratoon cotton crop'],
+        chemical: ['Chlorpyrifos 20 EC @ 2.5ml/litre', 'Profenofos 50 EC @ 2ml/litre', 'Indoxacarb 14.5 SC @ 1ml/litre', 'Spinosad 45 SC @ 0.3ml/litre']
+      }
+    },
   ];
 
   for (const disease of diseases) {
@@ -215,7 +226,7 @@ async function main() {
   // 5. Products (3-4 per dealer mapped to disease codes)
   const productSets = [
     { dealerIdx: 0, products: [
-      { name: 'Confidor (Imidacloprid 17.8 SL)', category: 'Insecticide', applicable_disease_codes: ['cotton_leaf_curl', 'cotton_aphid', 'tomato_yellow_leaf_curl'], stock_status: 'in_stock' },
+      { name: 'Confidor (Imidacloprid 17.8 SL)', category: 'Insecticide', applicable_disease_codes: ['cotton_leaf_curl', 'cotton_aphid', 'tomato_yellow_leaf_curl', 'cotton_pink_bollworm'], stock_status: 'in_stock' },
       { name: 'Thimet (Phorate 10G)', category: 'Insecticide', applicable_disease_codes: ['cotton_aphid', 'cotton_bollworm'], stock_status: 'in_stock' },
       { name: 'Ridomil Gold (Metalaxyl+Mancozeb)', category: 'Fungicide', applicable_disease_codes: ['tomato_late_blight', 'tomato_early_blight'], stock_status: 'low' },
     ]},
@@ -228,6 +239,7 @@ async function main() {
       { name: 'Nativo (Trifloxystrobin+Tebuconazole)', category: 'Fungicide', applicable_disease_codes: ['wheat_blast', 'wheat_rust', 'rice_blast'], stock_status: 'in_stock' },
       { name: 'Coragen (Chlorantraniliprole 18.5 SC)', category: 'Insecticide', applicable_disease_codes: ['cotton_bollworm', 'tomato_leaf_miner'], stock_status: 'low' },
       { name: 'Copper Oxychloride 50 WP', category: 'Fungicide', applicable_disease_codes: ['tomato_bacterial_wilt', 'cotton_fusarium_wilt'], stock_status: 'in_stock' },
+      { name: 'Spinosad 45 SC (Tracer)', category: 'Insecticide', applicable_disease_codes: ['cotton_pink_bollworm', 'cotton_bollworm', 'tomato_leaf_miner'], stock_status: 'in_stock' },
     ]},
     { dealerIdx: 3, products: [
       { name: 'Bavistin (Carbendazim 50 WP)', category: 'Fungicide', applicable_disease_codes: ['wheat_powdery_mildew', 'rice_blast', 'cotton_fusarium_wilt'], stock_status: 'in_stock' },
@@ -246,11 +258,25 @@ async function main() {
     const dealer = createdDealers[set.dealerIdx];
     if (!dealer) continue;
     for (const product of set.products) {
-      const { error } = await supabase.from('products').upsert(
-        { ...product, dealer_id: dealer.id },
-        { onConflict: 'dealer_id,name' }
-      );
-      if (error) console.error(`Failed to seed product ${product.name}:`, error.message);
+      // Check if product already exists for this dealer
+      const { data: existing } = await supabase
+        .from('products')
+        .select('id')
+        .eq('dealer_id', dealer.id)
+        .eq('name', product.name)
+        .single();
+      if (existing) {
+        // Update existing row
+        const { error } = await supabase
+          .from('products')
+          .update({ ...product, dealer_id: dealer.id })
+          .eq('id', existing.id);
+        if (error) console.error(`Failed to update product ${product.name}:`, error.message);
+      } else {
+        // Insert new row
+        const { error } = await supabase.from('products').insert({ ...product, dealer_id: dealer.id });
+        if (error) console.error(`Failed to seed product ${product.name}:`, error.message);
+      }
     }
   }
   console.log('Products seeded');

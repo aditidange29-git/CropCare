@@ -5,15 +5,16 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HomeIcon, ClockIcon, SettingsIcon, CameraIcon, LeafIcon, LogOutIcon, GlobeIcon, UserIcon } from '../../components/icons/index.tsx';
 import { useAuth } from '../../store/AuthContext.tsx';
+import { useT } from '../../store/LanguageContext.tsx';
 import { getDiagnoses, DiagnosisListItem } from '../../services/diagnosisService.ts';
 
 type TabId = 'home' | 'history' | 'settings';
 
-function getGreeting(): string {
+function getGreetingKey(): 'good_morning' | 'good_afternoon' | 'good_evening' {
   const h = new Date().getHours();
-  if (h < 12) return 'Good morning';
-  if (h < 17) return 'Good afternoon';
-  return 'Good evening';
+  if (h < 12) return 'good_morning';
+  if (h < 17) return 'good_afternoon';
+  return 'good_evening';
 }
 
 type ConfidenceLabel = 'high' | 'medium' | 'low';
@@ -34,6 +35,7 @@ function ConfidenceBadge({ label }: { label: ConfidenceLabel }): React.JSX.Eleme
 
 function HomeTabContent({ userName }: { userName: string }): React.JSX.Element {
   const navigate = useNavigate();
+  const t = useT();
   const [recentDiagnoses, setRecentDiagnoses] = useState<DiagnosisListItem[]>([]);
   const [loadingDiagnoses, setLoadingDiagnoses] = useState(true);
 
@@ -48,7 +50,7 @@ function HomeTabContent({ userName }: { userName: string }): React.JSX.Element {
     <div style={{ flex: 1, overflowY: 'auto', backgroundColor: '#f5f5f0' }}>
       {/* Greeting header */}
       <div style={{ padding: '24px 20px 20px', background: 'linear-gradient(135deg, #1a936f 0%, #114b5f 100%)' }}>
-        <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.75)', margin: '0 0 3px 0' }}>{getGreeting()},</p>
+        <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.75)', margin: '0 0 3px 0' }}>{t(getGreetingKey())},</p>
         <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#ffffff', margin: 0 }}>{userName || 'Farmer'}</h1>
       </div>
 
@@ -67,14 +69,14 @@ function HomeTabContent({ userName }: { userName: string }): React.JSX.Element {
             <CameraIcon size={30} color="#ffffff" />
           </div>
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '22px', fontWeight: 700, color: '#ffffff', marginBottom: '4px' }}>Scan Crop</div>
-            <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>Take a photo to diagnose disease</div>
+            <div style={{ fontSize: '22px', fontWeight: 700, color: '#ffffff', marginBottom: '4px' }}>{t('scan_crop')}</div>
+            <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>{t('scan_crop_sub')}</div>
           </div>
         </button>
 
         {/* Recent Diagnoses */}
         <div>
-          <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#114b5f', margin: '0 0 12px 0' }}>Recent Diagnoses</h2>
+          <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#114b5f', margin: '0 0 12px 0' }}>{t('recent_diagnoses')}</h2>
           {loadingDiagnoses ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {[0, 1].map((i) => (
@@ -93,8 +95,8 @@ function HomeTabContent({ userName }: { userName: string }): React.JSX.Element {
                 <LeafIcon size={36} color="#1a936f" />
               </div>
               <div style={{ textAlign: 'center' }}>
-                <p style={{ fontSize: '16px', fontWeight: 600, color: '#374151', margin: '0 0 4px 0' }}>No scans yet</p>
-                <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>Tap <strong>Scan Crop</strong> to begin your first diagnosis</p>
+                <p style={{ fontSize: '16px', fontWeight: 600, color: '#374151', margin: '0 0 4px 0' }}>{t('no_scans_yet')}</p>
+                <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>{t('no_scans_sub')}</p>
               </div>
             </div>
           ) : (
@@ -124,6 +126,7 @@ function HomeTabContent({ userName }: { userName: string }): React.JSX.Element {
 
 function HistoryTabContent(): React.JSX.Element {
   const navigate = useNavigate();
+  const t = useT();
   const crops = ['All', 'Cotton', 'Tomato', 'Wheat', 'Rice'];
   const [activeFilter, setActiveFilter] = useState('All');
   const [diagnoses, setDiagnoses] = useState<DiagnosisListItem[]>([]);
@@ -143,7 +146,7 @@ function HistoryTabContent(): React.JSX.Element {
   return (
     <div style={{ flex: 1, overflowY: 'auto', backgroundColor: '#f5f5f0' }}>
       <div style={{ padding: '20px 20px 16px', background: 'linear-gradient(135deg, #1a936f 0%, #114b5f 100%)' }}>
-        <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: 0 }}>History</h1>
+        <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: 0 }}>{t('history')}</h1>
       </div>
 
       {/* Filter chips */}
@@ -173,8 +176,8 @@ function HistoryTabContent(): React.JSX.Element {
             <div style={{ width: '72px', height: '72px', borderRadius: '16px', backgroundColor: '#e8f5f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <ClockIcon size={36} color="#1a936f" />
             </div>
-            <p style={{ fontSize: '16px', fontWeight: 600, color: '#374151', margin: 0, textAlign: 'center' }}>No history yet</p>
-            <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0, textAlign: 'center' }}>Your past diagnoses will appear here</p>
+            <p style={{ fontSize: '16px', fontWeight: 600, color: '#374151', margin: 0, textAlign: 'center' }}>{t('no_diagnoses')}</p>
+            <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0, textAlign: 'center' }}>{t('no_diagnoses_sub')}</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' }}>
@@ -200,19 +203,20 @@ function HistoryTabContent(): React.JSX.Element {
 function SettingsTabContent(): React.JSX.Element {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const t = useT();
   const language = localStorage.getItem('cropcare_language') ?? 'en';
   const langLabels: Record<string, string> = { en: 'English', hi: 'हिंदी', mr: 'मराठी' };
 
   return (
     <div style={{ flex: 1, overflowY: 'auto', backgroundColor: '#f5f5f0' }}>
       <div style={{ padding: '20px 20px 16px', background: 'linear-gradient(135deg, #1a936f 0%, #114b5f 100%)' }}>
-        <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: 0 }}>Settings</h1>
+        <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: 0 }}>{t('settings')}</h1>
       </div>
 
       <div style={{ padding: '20px 16px 88px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {/* User card */}
         <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-          <p style={{ fontSize: '11px', fontWeight: 700, color: '#9ca3af', margin: '0 0 14px 0', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Account</p>
+          <p style={{ fontSize: '11px', fontWeight: 700, color: '#9ca3af', margin: '0 0 14px 0', textTransform: 'uppercase', letterSpacing: '0.6px' }}>{t('account')}</p>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div style={{ width: '52px', height: '52px', borderRadius: '26px', backgroundColor: '#e8f5f0', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <UserIcon size={26} color="#1a936f" />
@@ -223,33 +227,33 @@ function SettingsTabContent(): React.JSX.Element {
             </div>
           </div>
           <div style={{ height: '1px', backgroundColor: '#f3f4f6', margin: '16px 0 12px' }} />
-          <p style={{ fontSize: '13px', color: '#9ca3af', margin: 0 }}>Your account</p>
+          <p style={{ fontSize: '13px', color: '#9ca3af', margin: 0 }}>{t('your_account')}</p>
         </div>
 
         {/* Language card */}
         <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
-          <p style={{ fontSize: '11px', fontWeight: 700, color: '#9ca3af', margin: '0 0 14px 0', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Language</p>
+          <p style={{ fontSize: '11px', fontWeight: 700, color: '#9ca3af', margin: '0 0 14px 0', textTransform: 'uppercase', letterSpacing: '0.6px' }}>{t('language')}</p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <GlobeIcon size={22} color="#6b7280" />
               <span style={{ fontSize: '15px', color: '#1f2937' }}>{langLabels[language] ?? 'English'}</span>
             </div>
             <button onClick={() => navigate('/language')} style={{ fontSize: '13px', fontWeight: 600, color: '#1a936f', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: '6px', minHeight: '36px' }}>
-              Change
+              {t('change')}
             </button>
           </div>
         </div>
 
         {/* App version */}
         <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '16px 20px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '14px', color: '#6b7280' }}>App Version</span>
+          <span style={{ fontSize: '14px', color: '#6b7280' }}>{t('version')}</span>
           <span style={{ fontSize: '14px', fontWeight: 600, color: '#374151' }}>v1.0.0</span>
         </div>
 
         {/* Logout */}
         <button onClick={logout} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', minHeight: '52px', width: '100%', backgroundColor: '#ffffff', color: '#c1121f', border: '2px solid #c1121f', borderRadius: '8px', fontSize: '16px', fontWeight: 600, cursor: 'pointer', transition: 'background-color 0.15s ease' }} onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#fef2f2'; }} onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#ffffff'; }}>
           <LogOutIcon size={20} color="#c1121f" />
-          Logout
+          {t('logout')}
         </button>
       </div>
     </div>
@@ -261,15 +265,16 @@ function NavIcon({ Icon, active }: { Icon: React.FC<{ size?: number; color?: str
   return <Icon size={22} color={active ? '#1a936f' : '#9ca3af'} />;
 }
 
-const TABS: { id: TabId; label: string; Icon: React.FC<{ size?: number; color?: string }> }[] = [
-  { id: 'home', label: 'Home', Icon: HomeIcon },
-  { id: 'history', label: 'History', Icon: ClockIcon },
-  { id: 'settings', label: 'Settings', Icon: SettingsIcon },
-];
-
 export default function HomePage(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<TabId>('home');
   const { user } = useAuth();
+  const t = useT();
+
+  const TABS: { id: TabId; labelKey: 'home' | 'history' | 'settings'; Icon: React.FC<{ size?: number; color?: string }> }[] = [
+    { id: 'home', labelKey: 'home', Icon: HomeIcon },
+    { id: 'history', labelKey: 'history', Icon: ClockIcon },
+    { id: 'settings', labelKey: 'settings', Icon: SettingsIcon },
+  ];
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', backgroundColor: '#f5f5f0' }}>
@@ -291,12 +296,12 @@ export default function HomePage(): React.JSX.Element {
           </div>
         </div>
         <nav style={{ flex: 1, padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {TABS.map(({ id, label, Icon }) => {
+          {TABS.map(({ id, labelKey, Icon }) => {
             const isActive = activeTab === id;
             return (
               <button key={id} onClick={() => setActiveTab(id)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', borderRadius: '8px', border: 'none', cursor: 'pointer', minHeight: '44px', width: '100%', textAlign: 'left', backgroundColor: isActive ? '#e8f5f0' : 'transparent', color: isActive ? '#1a936f' : '#6b7280', fontWeight: isActive ? 600 : 400, fontSize: '15px' }} aria-current={isActive ? 'page' : undefined} onMouseEnter={(e) => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#f9fafb'; }} onMouseLeave={(e) => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent'; }}>
                 <Icon size={20} color={isActive ? '#1a936f' : '#9ca3af'} />
-                {label}
+                {t(labelKey)}
               </button>
             );
           })}
@@ -319,12 +324,12 @@ export default function HomePage(): React.JSX.Element {
         className="flex md:hidden"
         aria-label="Bottom navigation"
       >
-        {TABS.map(({ id, label, Icon }) => {
+        {TABS.map(({ id, labelKey, Icon }) => {
           const isActive = activeTab === id;
           return (
-            <button key={id} onClick={() => setActiveTab(id)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', minHeight: '44px', gap: '3px' }} aria-label={label} aria-current={isActive ? 'page' : undefined}>
+            <button key={id} onClick={() => setActiveTab(id)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'none', border: 'none', cursor: 'pointer', minHeight: '44px', gap: '3px' }} aria-label={t(labelKey)} aria-current={isActive ? 'page' : undefined}>
               <NavIcon Icon={Icon} active={isActive} />
-              <span style={{ fontSize: '11px', fontWeight: isActive ? 600 : 400, color: isActive ? '#1a936f' : '#9ca3af' }}>{label}</span>
+              <span style={{ fontSize: '11px', fontWeight: isActive ? 600 : 400, color: isActive ? '#1a936f' : '#9ca3af' }}>{t(labelKey)}</span>
             </button>
           );
         })}

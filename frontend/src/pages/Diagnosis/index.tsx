@@ -4,6 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeftIcon, AlertTriangleIcon, CheckCircleIcon } from '../../components/icons/index.tsx';
+import { useT } from '../../store/LanguageContext.tsx';
 import { getDiagnosisById, DiagnosisResult } from '../../services/diagnosisService.ts';
 import { ApiError } from '../../services/api.ts';
 
@@ -12,22 +13,22 @@ type ConfidenceLabel = 'high' | 'medium' | 'low';
 interface ConfidenceConfig {
   bg: string;
   color: string;
-  label: string;
+  labelKey: 'high_confidence' | 'medium_confidence' | 'low_confidence';
   Icon: React.FC<{ size?: number; color?: string }>;
   iconColor: string;
 }
 
 const CONFIDENCE_CONFIG: Record<ConfidenceLabel, ConfidenceConfig> = {
   high: {
-    bg: '#dcfce7', color: '#166534', label: 'High Confidence',
+    bg: '#dcfce7', color: '#166534', labelKey: 'high_confidence',
     Icon: CheckCircleIcon, iconColor: '#16a34a',
   },
   medium: {
-    bg: '#fef9c3', color: '#854d0e', label: 'Medium Confidence',
+    bg: '#fef9c3', color: '#854d0e', labelKey: 'medium_confidence',
     Icon: AlertTriangleIcon, iconColor: '#ca8a04',
   },
   low: {
-    bg: '#fee2e2', color: '#991b1b', label: 'Low Confidence',
+    bg: '#fee2e2', color: '#991b1b', labelKey: 'low_confidence',
     Icon: AlertTriangleIcon, iconColor: '#dc2626',
   },
 };
@@ -35,6 +36,7 @@ const CONFIDENCE_CONFIG: Record<ConfidenceLabel, ConfidenceConfig> = {
 export default function DiagnosisPage(): React.JSX.Element {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const t = useT();
 
   const [diagnosis, setDiagnosis] = useState<DiagnosisResult | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -76,7 +78,7 @@ export default function DiagnosisPage(): React.JSX.Element {
           animation: 'spin 0.8s linear infinite',
         }} />
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        <p style={{ fontSize: '15px', color: '#6b7280', margin: 0 }}>Loading diagnosis...</p>
+        <p style={{ fontSize: '15px', color: '#6b7280', margin: 0 }}>{t('loading_diagnosis')}</p>
       </div>
     );
   }
@@ -142,7 +144,7 @@ export default function DiagnosisPage(): React.JSX.Element {
           <ChevronLeftIcon size={24} color="#ffffff" />
         </button>
         <h1 style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff', margin: 0 }}>
-          Diagnosis Result
+          {t('diagnosis_result')}
         </h1>
       </div>
 
@@ -155,7 +157,7 @@ export default function DiagnosisPage(): React.JSX.Element {
         }}>
           <AlertTriangleIcon size={20} color="#f0a202" />
           <p style={{ fontSize: '14px', color: '#92400e', margin: 0, lineHeight: 1.5 }}>
-            <strong>Our best guess</strong> — verify with an agricultural expert before taking action.
+            <strong>{t('our_best_guess')}</strong> — {t('verify_expert')}
           </p>
         </div>
       )}
@@ -176,7 +178,7 @@ export default function DiagnosisPage(): React.JSX.Element {
           }}>
             <config.Icon size={14} color={config.iconColor} />
             <span style={{ fontSize: '13px', fontWeight: 600, color: config.color }}>
-              {config.label}
+              {t(config.labelKey)}
             </span>
           </div>
 
@@ -199,7 +201,7 @@ export default function DiagnosisPage(): React.JSX.Element {
           fontSize: '17px', fontWeight: 700, color: '#114b5f',
           margin: '0 0 12px 0',
         }}>
-          Treatment Guide
+          {t('treatment_guide')}
         </h3>
 
         <div style={{
@@ -227,7 +229,7 @@ export default function DiagnosisPage(): React.JSX.Element {
                 </svg>
               </div>
               <span style={{ fontSize: '15px', fontWeight: 700, color: '#1a936f' }}>
-                Organic Remedies
+                {t('organic_remedies')}
               </span>
             </div>
             <ul style={{ margin: 0, padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -258,7 +260,7 @@ export default function DiagnosisPage(): React.JSX.Element {
                 </svg>
               </div>
               <span style={{ fontSize: '15px', fontWeight: 700, color: '#114b5f' }}>
-                Chemical Treatment
+                {t('chemical_treatment')}
               </span>
             </div>
             <ul style={{ margin: 0, padding: '0 0 0 18px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -291,7 +293,7 @@ export default function DiagnosisPage(): React.JSX.Element {
           onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#157a5c'; }}
           onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#1a936f'; }}
         >
-          See Recommended Products
+          {t('see_products')}
         </button>
       </div>
     </div>

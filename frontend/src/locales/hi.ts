@@ -1,0 +1,99 @@
+export const hi = {
+  // Common
+  app_name: 'CropCare',
+  continue: 'जारी रखें',
+  back: 'वापस',
+  retry: 'पुनः प्रयास करें',
+  loading: 'लोड हो रहा है...',
+  error_generic: 'कुछ गलत हुआ। कृपया पुनः प्रयास करें।',
+  no_internet: 'इंटरनेट कनेक्शन नहीं है',
+  version: 'ऐप संस्करण',
+  logout: 'लॉग आउट',
+  your_account: 'आपका खाता',
+  preferences: 'प्राथमिकताएं',
+  about: 'जानकारी',
+  change: 'बदलें',
+  language: 'भाषा',
+
+  // Language Select
+  choose_language: 'अपनी भाषा चुनें',
+  choose_language_sub: 'Choose your language · आपली भाषा निवडा',
+
+  // Login
+  welcome: 'स्वागत है',
+  login_subtitle: 'जारी रखने के लिए अपना विवरण दर्ज करें',
+  your_name: 'आपका नाम',
+  name_placeholder: 'उदा. रमेश पाटिल',
+  phone_number: 'फोन नंबर',
+  phone_placeholder: '+91 XXXXX XXXXX',
+  name_required: 'कृपया अपना नाम दर्ज करें',
+  phone_required: 'कृपया अपना फोन नंबर दर्ज करें',
+  phone_invalid: 'फोन नंबर कम से कम 10 अंकों का होना चाहिए',
+  login_failed: 'लॉगिन विफल। कृपया कनेक्शन जांचें।',
+  signing_in: 'साइन इन हो रहा है...',
+  login_note: 'आपका फोन नंबर ही आपका खाता है — कोई पासवर्ड नहीं चाहिए',
+
+  // Home
+  good_morning: 'सुप्रभात',
+  good_afternoon: 'नमस्कार',
+  good_evening: 'शुभ संध्या',
+  scan_crop: 'फसल स्कैन करें',
+  scan_crop_sub: 'रोग की पहचान के लिए फोटो लें',
+  recent_diagnoses: 'हाल के निदान',
+  no_scans_yet: 'अभी तक कोई स्कैन नहीं',
+  no_scans_sub: 'पहला निदान शुरू करने के लिए फसल स्कैन करें पर टैप करें',
+  history: 'इतिहास',
+  settings: 'सेटिंग्स',
+  home: 'होम',
+
+  // Camera
+  scan_crop_title: 'फसल स्कैन करें',
+  camera_guidance: 'प्रभावित पत्ती को फ्रेम में स्पष्ट रूप से, अच्छी रोशनी में रखें',
+  take_photo: 'फोटो लें',
+  upload_gallery: 'गैलरी से अपलोड करें',
+  analyze_photo: 'यह फोटो विश्लेषण करें',
+  choose_different: 'अलग फोटो चुनें',
+  analyzing: 'आपकी फसल का विश्लेषण हो रहा है...',
+  analyzing_sub: 'इसमें 10 सेकंड तक लग सकते हैं',
+  upload_failed: 'अपलोड विफल। कृपया पुनः प्रयास करें।',
+  camera_browser_note: 'नेटिव कैमरा केवल Android ऐप में उपलब्ध है।\n\nगैलरी से चुनने के लिए ठीक है पर क्लिक करें।',
+  camera_hint: 'प्रभावित पत्ती को फ्रेम में स्पष्ट रूप से, अच्छी रोशनी में रखें',
+  our_best_guess: 'यह हमारा सर्वश्रेष्ठ अनुमान है',
+  verify_expert: 'कोई कदम उठाने से पहले किसी कृषि विशेषज्ञ से सत्यापित करें।',
+
+  // Diagnosis
+  diagnosis_result: 'निदान परिणाम',
+  high_confidence: 'उच्च विश्वास',
+  medium_confidence: 'मध्यम विश्वास',
+  low_confidence: 'कम विश्वास',
+  low_confidence_warning: 'यह हमारा सर्वश्रेष्ठ अनुमान है — कोई कदम उठाने से पहले किसी कृषि विशेषज्ञ से सत्यापित करें।',
+  treatment_guide: 'उपचार मार्गदर्शिका',
+  organic_remedies: 'जैविक उपाय',
+  chemical_treatment: 'रासायनिक उपचार',
+  see_products: 'अनुशंसित उत्पाद देखें',
+  loading_diagnosis: 'निदान लोड हो रहा है...',
+  diagnosis_not_found: 'निदान नहीं मिला।',
+
+  // Recommendations
+  nearby_products: 'पास के उत्पाद',
+  for_disease: 'के लिए',
+  dealers_found: 'डीलर आपके पास मिले',
+  dealer_found: 'डीलर आपके पास मिला',
+  no_dealers: 'पास में कोई डीलर नहीं मिला',
+  no_dealers_sub: 'अभी तक आपके पास कोई डीलर विशिष्ट उत्पाद नहीं रखता। अपने स्थानीय बाजार में खोजें।',
+  call: 'कॉल करें',
+  whatsapp: 'व्हाट्सऐप',
+  in_stock: 'स्टॉक में है',
+  low_stock: 'कम स्टॉक',
+  out_of_stock: 'स्टॉक खत्म',
+  km_away: 'किमी दूर',
+  loading_recs: 'सिफारिशें लोड हो रही हैं...',
+
+  // History
+  diagnosis_history: 'निदान इतिहास',
+  no_diagnoses: 'कोई निदान नहीं मिला',
+  no_diagnoses_sub: 'आपके पिछले निदान यहां दिखाई देंगे',
+
+  // Settings
+  account: 'खाता',
+};

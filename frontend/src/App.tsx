@@ -1,14 +1,17 @@
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
+import { LanguageProvider } from './store/LanguageContext.tsx';
 import { AuthProvider } from './store/AuthContext.tsx';
 import AppRouter from './router/index.tsx';
 
 export default function App(): React.JSX.Element {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppRouter />
-      </AuthProvider>
+      <LanguageProvider>
+        <AuthProvider>
+          <AppRouter />
+        </AuthProvider>
+      </LanguageProvider>
     </BrowserRouter>
   );
 }

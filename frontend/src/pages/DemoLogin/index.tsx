@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeftIcon } from '../../components/icons/index.tsx';
 import { useAuth } from '../../store/AuthContext.tsx';
+import { useT } from '../../store/LanguageContext.tsx';
 import { ApiError } from '../../services/api.ts';
 
 interface FormState { name: string; phone: string; }
@@ -27,6 +28,7 @@ function inputStyle(hasError: boolean): React.CSSProperties {
 export default function DemoLoginPage(): React.JSX.Element {
   const navigate = useNavigate();
   const { farmerLogin } = useAuth();
+  const t = useT();
   const [form, setForm] = useState<FormState>({ name: '', phone: '' });
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitted, setSubmitted] = useState(false);
@@ -39,9 +41,9 @@ export default function DemoLoginPage(): React.JSX.Element {
 
   function validate(): FormErrors {
     const errs: FormErrors = {};
-    if (!form.name.trim()) errs.name = 'Please enter your name';
-    if (!form.phone.trim()) errs.phone = 'Please enter your phone number';
-    else if (!validatePhone(form.phone)) errs.phone = 'Phone number must be at least 10 digits';
+    if (!form.name.trim()) errs.name = t('name_required');
+    if (!form.phone.trim()) errs.phone = t('phone_required');
+    else if (!validatePhone(form.phone)) errs.phone = t('phone_invalid');
     return errs;
   }
 
@@ -55,7 +57,7 @@ export default function DemoLoginPage(): React.JSX.Element {
       await farmerLogin(form.name.trim(), form.phone.trim());
       navigate('/home', { replace: true });
     } catch (err) {
-      const msg = err instanceof ApiError ? err.message : 'Login failed. Check your connection.';
+      const msg = err instanceof ApiError ? err.message : t('login_failed');
       setErrors({ general: msg });
     } finally { setLoading(false); }
   }
@@ -88,8 +90,8 @@ export default function DemoLoginPage(): React.JSX.Element {
         </div>
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '40px 28px 32px', maxWidth: '480px', width: '100%', margin: '0 auto' }}>
-          <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#114b5f', margin: '0 0 6px 0' }}>Welcome</h2>
-          <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 32px 0' }}>Enter your details to continue</p>
+          <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#114b5f', margin: '0 0 6px 0' }}>{t('welcome')}</h2>
+          <p style={{ fontSize: '14px', color: '#6b7280', margin: '0 0 32px 0' }}>{t('login_subtitle')}</p>
 
           {errors.general && (
             <div style={{ backgroundColor: '#fee2e2', border: '1px solid #fca5a5', borderRadius: '8px', padding: '12px 16px', marginBottom: '20px', fontSize: '14px', color: '#991b1b' }}>{errors.general}</div>
@@ -97,20 +99,20 @@ export default function DemoLoginPage(): React.JSX.Element {
 
           <form onSubmit={handleSubmit} noValidate>
             <div style={{ marginBottom: '20px' }}>
-              <label htmlFor="name" style={{ fontSize: '14px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '7px' }}>Your Name</label>
-              <input id="name" type="text" value={form.name} placeholder="e.g. Ramesh Patil" onChange={(e) => handleChange('name', e.target.value)} style={inputStyle(!!errors.name)} onFocus={(e) => { if (!errors.name) { e.currentTarget.style.borderColor = '#1a936f'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(26,147,111,0.12)'; } }} onBlur={(e) => { if (!errors.name) { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.boxShadow = 'none'; } }} aria-invalid={!!errors.name} />
+              <label htmlFor="name" style={{ fontSize: '14px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '7px' }}>{t('your_name')}</label>
+              <input id="name" type="text" value={form.name} placeholder={t('name_placeholder')} onChange={(e) => handleChange('name', e.target.value)} style={inputStyle(!!errors.name)} onFocus={(e) => { if (!errors.name) { e.currentTarget.style.borderColor = '#1a936f'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(26,147,111,0.12)'; } }} onBlur={(e) => { if (!errors.name) { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.boxShadow = 'none'; } }} aria-invalid={!!errors.name} />
               {errors.name && <p role="alert" style={{ fontSize: '13px', color: '#c1121f', margin: '5px 0 0 0' }}>{errors.name}</p>}
             </div>
             <div style={{ marginBottom: '36px' }}>
-              <label htmlFor="phone" style={{ fontSize: '14px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '7px' }}>Phone Number</label>
-              <input id="phone" type="tel" value={form.phone} placeholder="+91 XXXXX XXXXX" onChange={(e) => handleChange('phone', e.target.value)} style={inputStyle(!!errors.phone)} onFocus={(e) => { if (!errors.phone) { e.currentTarget.style.borderColor = '#1a936f'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(26,147,111,0.12)'; } }} onBlur={(e) => { if (!errors.phone) { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.boxShadow = 'none'; } }} aria-invalid={!!errors.phone} />
+              <label htmlFor="phone" style={{ fontSize: '14px', fontWeight: 600, color: '#374151', display: 'block', marginBottom: '7px' }}>{t('phone_number')}</label>
+              <input id="phone" type="tel" value={form.phone} placeholder={t('phone_placeholder')} onChange={(e) => handleChange('phone', e.target.value)} style={inputStyle(!!errors.phone)} onFocus={(e) => { if (!errors.phone) { e.currentTarget.style.borderColor = '#1a936f'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(26,147,111,0.12)'; } }} onBlur={(e) => { if (!errors.phone) { e.currentTarget.style.borderColor = '#d1d5db'; e.currentTarget.style.boxShadow = 'none'; } }} aria-invalid={!!errors.phone} />
               {errors.phone && <p role="alert" style={{ fontSize: '13px', color: '#c1121f', margin: '5px 0 0 0' }}>{errors.phone}</p>}
             </div>
             <button type="submit" disabled={loading} style={{ width: '100%', height: '52px', backgroundColor: loading ? '#6b7280' : '#1a936f', color: '#ffffff', border: 'none', borderRadius: '8px', fontSize: '17px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontFamily: 'system-ui, -apple-system, sans-serif' }} onMouseEnter={(e) => { if (!loading) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#157a5c'; }} onMouseLeave={(e) => { if (!loading) (e.currentTarget as HTMLButtonElement).style.backgroundColor = loading ? '#6b7280' : '#1a936f'; }}>
-              {loading ? <><div style={{ width: 20, height: 20, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />Signing in...</> : 'Continue →'}
+              {loading ? <><div style={{ width: 20, height: 20, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />{t('signing_in')}</> : `${t('continue')} →`}
             </button>
           </form>
-          <p style={{ textAlign: 'center', fontSize: '13px', color: '#9ca3af', margin: '28px 0 0 0', lineHeight: 1.5 }}>Your phone number is your account — no password needed</p>
+          <p style={{ textAlign: 'center', fontSize: '13px', color: '#9ca3af', margin: '28px 0 0 0', lineHeight: 1.5 }}>{t('login_note')}</p>
         </div>
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
