@@ -1,11 +1,11 @@
 // CropCare — Diagnosis Result Screen
 // Route: /diagnosis/:id
 // See architecture/04_UI_UX_Spec.md §3.7
-// Uses MOCK_DIAGNOSIS for now.
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeftIcon, AlertTriangleIcon, CheckCircleIcon } from '../../components/icons/index.tsx';
-import { MOCK_DIAGNOSIS } from '../../data/mockData.ts';
+import { getDiagnosisById, DiagnosisResult } from '../../services/diagnosisService.ts';
+import { ApiError } from '../../services/api.ts';
 
 type ConfidenceLabel = 'high' | 'medium' | 'low';
 
@@ -35,10 +35,88 @@ const CONFIDENCE_CONFIG: Record<ConfidenceLabel, ConfidenceConfig> = {
 export default function DiagnosisPage(): React.JSX.Element {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  // In production, fetch by id. For now always use mock.
-  const diagnosis = MOCK_DIAGNOSIS;
+
+  const [diagnosis, setDiagnosis] = useState<DiagnosisResult | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchDiagnosis() {
+      setLoading(true);
+      setError(null);
+      try {
+        const result = await getDiagnosisById(id!);
+        if (!cancelled) setDiagnosis(result);
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof ApiError ? err.message : 'Failed to load diagnosis. Please try again.');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchDiagnosis();
+    return () => { cancelled = true; };
+  }, [id]);
+
+
+  // --- Loading state ---
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        minHeight: '100vh', backgroundColor: '#f5f5f0',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        gap: '14px',
+      }}>
+        <div style={{
+          width: '44px', height: '44px', borderRadius: '50%',
+          border: '4px solid #e5e7eb', borderTopColor: '#1a936f',
+          animation: 'spin 0.8s linear infinite',
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <p style={{ fontSize: '15px', color: '#6b7280', margin: 0 }}>Loading diagnosis...</p>
+      </div>
+    );
+  }
+
+  // --- Error state ---
+  if (error || !diagnosis) {
+    return (
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        minHeight: '100vh', backgroundColor: '#f5f5f0',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        padding: '24px',
+      }}>
+        <div style={{
+          backgroundColor: '#ffffff', borderRadius: '16px', padding: '32px 24px',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.08)', textAlign: 'center', maxWidth: '360px', width: '100%',
+        }}>
+          <AlertTriangleIcon size={36} color="#dc2626" />
+          <p style={{ fontSize: '16px', color: '#374151', margin: '14px 0 20px', lineHeight: 1.5 }}>
+            {error ?? 'Diagnosis not found.'}
+          </p>
+          <button
+            onClick={() => { setError(null); setLoading(true); getDiagnosisById(id!).then(setDiagnosis).catch((err) => setError(err instanceof ApiError ? err.message : 'Failed to load diagnosis.')).finally(() => setLoading(false)); }}
+            style={{
+              height: '44px', padding: '0 28px',
+              backgroundColor: '#1a936f', color: '#ffffff',
+              border: 'none', borderRadius: '10px',
+              fontSize: '15px', fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const confidenceLabel = diagnosis.disease.confidence_label;
   const config = CONFIDENCE_CONFIG[confidenceLabel];
+
 
   return (
     <div style={{
@@ -201,7 +279,7 @@ export default function DiagnosisPage(): React.JSX.Element {
         padding: '16px 16px 24px',
       }}>
         <button
-          onClick={() => navigate(`/recommendations/${id ?? 'mock-001'}`)}
+          onClick={() => navigate(`/recommendations/${id}`)}
           style={{
             width: '100%', height: '54px',
             backgroundColor: '#1a936f', color: '#ffffff',

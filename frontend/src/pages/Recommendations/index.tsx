@@ -1,11 +1,12 @@
 // CropCare — Recommendations Screen
 // Route: /recommendations/:diagnosisId
 // See architecture/04_UI_UX_Spec.md §3.8
-// Uses MOCK_RECOMMENDATIONS for now.
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ChevronLeftIcon, PhoneIcon, MessageCircleIcon, MapPinIcon } from '../../components/icons/index.tsx';
-import { MOCK_RECOMMENDATIONS, MOCK_DIAGNOSIS } from '../../data/mockData.ts';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { ChevronLeftIcon, PhoneIcon, MessageCircleIcon, MapPinIcon, AlertTriangleIcon } from '../../components/icons/index.tsx';
+import { getRecommendations, recordContact, RecommendationItem } from '../../services/recommendationService.ts';
+import { getDiagnosisById } from '../../services/diagnosisService.ts';
+import { ApiError } from '../../services/api.ts';
 
 type StockStatus = 'in_stock' | 'low' | 'out_of_stock';
 
@@ -18,16 +19,129 @@ const STOCK_CONFIG: Record<StockStatus, StockConfig> = {
 
 export default function RecommendationsPage(): React.JSX.Element {
   const navigate = useNavigate();
-  const products = MOCK_RECOMMENDATIONS;
+  const { diagnosisId } = useParams<{ diagnosisId: string }>();
 
-  function handleCall(phone: string): void {
-    window.location.href = `tel:${phone}`;
+  const [products, setProducts] = useState<RecommendationItem[]>([]);
+  const [diseaseName, setDiseaseName] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [contactingId, setContactingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchData() {
+      setLoading(true);
+      setError(null);
+      try {
+        const [recs, diag] = await Promise.all([
+          getRecommendations(diagnosisId!),
+          getDiagnosisById(diagnosisId!),
+        ]);
+        if (!cancelled) {
+          setProducts(recs);
+          setDiseaseName(diag.disease.name);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof ApiError ? err.message : 'Failed to load recommendations. Please try again.');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchData();
+    return () => { cancelled = true; };
+  }, [diagnosisId]);
+
+
+  async function handleCall(dealerId: string): Promise<void> {
+    const key = `${dealerId}-call`;
+    if (contactingId === key) return;
+    setContactingId(key);
+    try {
+      const result = await recordContact(diagnosisId!, dealerId, 'call');
+      window.location.href = result.deep_link;
+    } catch {
+      // fall back silently — contact was not recorded but user action is unblocked
+    } finally {
+      setContactingId(null);
+    }
   }
 
-  function handleWhatsApp(phone: string): void {
-    const cleaned = phone.replace(/\D/g, '');
-    window.open(`https://wa.me/${cleaned}`, '_blank');
+  async function handleWhatsApp(dealerId: string): Promise<void> {
+    const key = `${dealerId}-whatsapp`;
+    if (contactingId === key) return;
+    setContactingId(key);
+    try {
+      const result = await recordContact(diagnosisId!, dealerId, 'whatsapp');
+      window.open(result.deep_link, '_blank');
+    } catch {
+      // fall back silently
+    } finally {
+      setContactingId(null);
+    }
   }
+
+  // --- Loading state ---
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        minHeight: '100vh', backgroundColor: '#f5f5f0',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        gap: '14px',
+      }}>
+        <div style={{
+          width: '44px', height: '44px', borderRadius: '50%',
+          border: '4px solid #e5e7eb', borderTopColor: '#1a936f',
+          animation: 'spin 0.8s linear infinite',
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <p style={{ fontSize: '15px', color: '#6b7280', margin: 0 }}>Loading recommendations...</p>
+      </div>
+    );
+  }
+
+  // --- Error state ---
+  if (error) {
+    return (
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        minHeight: '100vh', backgroundColor: '#f5f5f0',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
+        padding: '24px',
+      }}>
+        <div style={{
+          backgroundColor: '#ffffff', borderRadius: '16px', padding: '32px 24px',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.08)', textAlign: 'center', maxWidth: '360px', width: '100%',
+        }}>
+          <AlertTriangleIcon size={36} color="#dc2626" />
+          <p style={{ fontSize: '16px', color: '#374151', margin: '14px 0 20px', lineHeight: 1.5 }}>
+            {error}
+          </p>
+          <button
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              Promise.all([getRecommendations(diagnosisId!), getDiagnosisById(diagnosisId!)])
+                .then(([recs, diag]) => { setProducts(recs); setDiseaseName(diag.disease.name); })
+                .catch((err) => setError(err instanceof ApiError ? err.message : 'Failed to load recommendations.'))
+                .finally(() => setLoading(false));
+            }}
+            style={{
+              height: '44px', padding: '0 28px',
+              backgroundColor: '#1a936f', color: '#ffffff',
+              border: 'none', borderRadius: '10px',
+              fontSize: '15px', fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
 
   return (
     <div style={{
@@ -56,16 +170,17 @@ export default function RecommendationsPage(): React.JSX.Element {
           <h1 style={{ fontSize: '17px', fontWeight: 700, color: '#ffffff', margin: 0 }}>
             Nearby Products
           </h1>
-          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', margin: '1px 0 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            For {MOCK_DIAGNOSIS.disease.name}
-          </p>
+          {diseaseName ? (
+            <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.75)', margin: '1px 0 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              For {diseaseName}
+            </p>
+          ) : null}
         </div>
       </div>
 
       {/* Content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 24px' }}>
         {products.length === 0 ? (
-          // Empty state
           <div style={{
             backgroundColor: '#ffffff', borderRadius: '12px',
             padding: '48px 24px', marginTop: '8px',
@@ -93,6 +208,8 @@ export default function RecommendationsPage(): React.JSX.Element {
             </p>
             {products.map((item) => {
               const stockConfig = STOCK_CONFIG[item.stock_status];
+              const isCallingThis = contactingId === `${item.dealer.id}-call`;
+              const isWAing = contactingId === `${item.dealer.id}-whatsapp`;
               return (
                 <div
                   key={item.product_id}
@@ -125,50 +242,56 @@ export default function RecommendationsPage(): React.JSX.Element {
                   </div>
 
                   {/* Distance */}
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: '5px',
-                    marginBottom: '14px',
-                  }}>
-                    <MapPinIcon size={14} color="#9ca3af" />
-                    <span style={{ fontSize: '13px', color: '#9ca3af' }}>
-                      {item.distance_km} km away
-                    </span>
-                  </div>
+                  {item.distance_km != null && (
+                    <div style={{
+                      display: 'flex', alignItems: 'center', gap: '5px',
+                      marginBottom: '14px',
+                    }}>
+                      <MapPinIcon size={14} color="#9ca3af" />
+                      <span style={{ fontSize: '13px', color: '#9ca3af' }}>
+                        {item.distance_km} km away
+                      </span>
+                    </div>
+                  )}
 
                   {/* Contact buttons */}
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <button
-                      onClick={() => handleCall(item.dealer.phone_number)}
+                      onClick={() => handleCall(item.dealer.id)}
+                      disabled={isCallingThis}
                       style={{
                         flex: 1, height: '44px',
                         backgroundColor: '#e8f5f0', color: '#1a936f',
                         border: '1.5px solid #1a936f', borderRadius: '8px',
-                        fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+                        fontSize: '14px', fontWeight: 600, cursor: isCallingThis ? 'default' : 'pointer',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                        opacity: isCallingThis ? 0.7 : 1,
                         transition: 'background-color 0.15s ease',
                       }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#d1f0e5'; }}
+                      onMouseEnter={(e) => { if (!isCallingThis) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#d1f0e5'; }}
                       onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#e8f5f0'; }}
                     >
                       <PhoneIcon size={16} color="#1a936f" />
-                      Call
+                      {isCallingThis ? '...' : 'Call'}
                     </button>
                     {item.dealer.whatsapp_number ? (
                       <button
-                        onClick={() => handleWhatsApp(item.dealer.whatsapp_number!)}
+                        onClick={() => handleWhatsApp(item.dealer.id)}
+                        disabled={isWAing}
                         style={{
                           flex: 1, height: '44px',
                           backgroundColor: '#e8f5e0', color: '#16a34a',
                           border: '1.5px solid #16a34a', borderRadius: '8px',
-                          fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+                          fontSize: '14px', fontWeight: 600, cursor: isWAing ? 'default' : 'pointer',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                          opacity: isWAing ? 0.7 : 1,
                           transition: 'background-color 0.15s ease',
                         }}
-                        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#d1f0d0'; }}
+                        onMouseEnter={(e) => { if (!isWAing) (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#d1f0d0'; }}
                         onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#e8f5e0'; }}
                       >
                         <MessageCircleIcon size={16} color="#16a34a" />
-                        WhatsApp
+                        {isWAing ? '...' : 'WhatsApp'}
                       </button>
                     ) : (
                       <div style={{ flex: 1 }} />
