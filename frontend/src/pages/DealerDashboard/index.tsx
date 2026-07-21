@@ -171,3 +171,148 @@ function CatalogTab({ dealerName }: { dealerName: string }): React.JSX.Element {
     </div>
   );
 }
+function LeadsTab(): React.JSX.Element {
+  const [leads, setLeads] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getDealerLeads(1)
+      .then((d: any) => setLeads((d as any).items ?? []))
+      .catch(() => setLeads([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return (
+    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px' }}>
+      <div style={{ width: 36, height: 36, border: '3px solid #e5e7eb', borderTopColor: '#114b5f', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+    </div>
+  );
+
+  return (
+    <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 24px' }}>
+      {leads.length === 0 ? (
+        <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '48px 24px', textAlign: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+          <p style={{ fontSize: '16px', fontWeight: 600, color: '#374151', margin: '0 0 4px 0' }}>No leads yet</p>
+          <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>Leads appear when your products are recommended to farmers</p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {leads.map((lead: any, i: number) => (
+            <div key={lead.diagnosis_id ?? i} style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '14px 16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1.5px solid #f3f4f6' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                <p style={{ fontSize: '15px', fontWeight: 700, color: '#1f2937', margin: 0 }}>{lead.disease_name ?? 'Unknown Disease'}</p>
+                <span style={{ fontSize: '12px', padding: '2px 8px', borderRadius: '999px', backgroundColor: lead.contacted ? '#dcfce7' : '#f3f4f6', color: lead.contacted ? '#166534' : '#6b7280', fontWeight: 500, flexShrink: 0 }}>
+                  {lead.contacted ? 'Contacted' : 'New Lead'}
+                </span>
+              </div>
+              <p style={{ fontSize: '13px', color: '#6b7280', margin: '0 0 3px 0' }}>{lead.matched_product_name}</p>
+              <p style={{ fontSize: '12px', color: '#9ca3af', margin: 0 }}>{lead.created_at ? new Date(lead.created_at).toLocaleDateString('en-IN') : ''}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AnalyticsTab(): React.JSX.Element {
+  const [analytics, setAnalytics] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getDealerAnalytics()
+      .then((d: any) => setAnalytics(d))
+      .catch(() => setAnalytics(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return (
+    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px' }}>
+      <div style={{ width: 36, height: 36, border: '3px solid #e5e7eb', borderTopColor: '#114b5f', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+    </div>
+  );
+
+  const stats = [
+    { label: 'Diagnoses Matched', value: String(analytics?.diagnoses_matched ?? 0) },
+    { label: 'Contacts Received', value: String(analytics?.contacts_received ?? 0) },
+  ];
+  const topDiseases: any[] = analytics?.top_diseases ?? [];
+
+  return (
+    <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', marginBottom: '20px' }}>
+        {stats.map(s => (
+          <div key={s.label} style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <p style={{ fontSize: '30px', fontWeight: 800, color: '#114b5f', margin: '0 0 4px 0' }}>{s.value}</p>
+            <p style={{ fontSize: '13px', fontWeight: 600, color: '#374151', margin: 0 }}>{s.label}</p>
+          </div>
+        ))}
+      </div>
+      {topDiseases.length > 0 && (
+        <>
+          <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#114b5f', margin: '0 0 12px 0' }}>Top Diseases</h3>
+          <div style={{ backgroundColor: '#fff', borderRadius: '12px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+            {topDiseases.map((d: any, i: number) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: i < topDiseases.length - 1 ? '12px' : 0 }}>
+                <span style={{ fontSize: '13px', color: '#374151', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.disease_name}</span>
+                <div style={{ width: '80px', height: '8px', backgroundColor: '#f3f4f6', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', backgroundColor: '#1a936f', borderRadius: '4px', width: `${Math.min((d.count / (topDiseases[0]?.count || 1)) * 100, 100)}%` }} />
+                </div>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: '#114b5f', width: '20px', textAlign: 'right' }}>{d.count}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+export default function DealerDashboardPage(): React.JSX.Element {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<TabId>('catalog');
+
+  const tabs: { id: TabId; label: string; Icon: React.FC<{ size?: number; color?: string }> }[] = [
+    { id: 'catalog', label: 'Catalog', Icon: PackageIcon },
+    { id: 'leads', label: 'Leads', Icon: UsersIcon },
+    { id: 'analytics', label: 'Analytics', Icon: BarChartIcon },
+  ];
+
+  const dealerName = (user as any)?.shop_name ?? (user as any)?.name ?? 'My Store';
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', backgroundColor: '#f5f5f0', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <div style={{ padding: '16px 20px 0', background: 'linear-gradient(135deg, #114b5f 0%, #0d3547 100%)', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+          <div>
+            <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', margin: 0 }}>Dealer Dashboard</p>
+            <h1 style={{ fontSize: '20px', fontWeight: 700, color: '#ffffff', margin: '2px 0 0 0' }}>{dealerName}</h1>
+          </div>
+          <button
+            onClick={() => { logout(); navigate('/dealer/login'); }}
+            style={{ minHeight: '36px', padding: '6px 14px', backgroundColor: 'rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.85)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px' }}
+          >
+            Logout
+          </button>
+        </div>
+        <div style={{ display: 'flex' }}>
+          {tabs.map(({ id, label, Icon }) => {
+            const isActive = activeTab === id;
+            return (
+              <button key={id} onClick={() => setActiveTab(id)} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 4px', border: 'none', cursor: 'pointer', backgroundColor: 'transparent', borderBottom: isActive ? '2.5px solid #ffffff' : '2.5px solid transparent', gap: '3px', minHeight: '44px', transition: 'border-color 0.15s ease' }}>
+                <Icon size={18} color={isActive ? '#ffffff' : 'rgba(255,255,255,0.5)'} />
+                <span style={{ fontSize: '12px', fontWeight: isActive ? 600 : 400, color: isActive ? '#ffffff' : 'rgba(255,255,255,0.6)' }}>{label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        {activeTab === 'catalog' && <CatalogTab dealerName={dealerName} />}
+        {activeTab === 'leads' && <LeadsTab />}
+        {activeTab === 'analytics' && <AnalyticsTab />}
+      </div>
+    </div>
+  );
+}
