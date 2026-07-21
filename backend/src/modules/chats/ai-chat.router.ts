@@ -49,9 +49,18 @@ router.post('/', authenticate, asyncHandler(async (req: Request, res) => {
     config.geminiApiKey.includes('your-gemini') ||
     config.geminiApiKey.length < 20;
 
-  const reply = useMock
-    ? await aiChatService.chatMock(message, diagnosisContext)
-    : await aiChatService.chat(message, history as ChatMessage[], diagnosisContext);
+  let reply: string;
+  if (useMock) {
+    reply = await aiChatService.chatMock(message, diagnosisContext);
+  } else {
+    try {
+      reply = await aiChatService.chat(message, history as ChatMessage[], diagnosisContext);
+    } catch (geminiErr) {
+      // Gemini API call failed (invalid key, quota, network) — fall back to smart mock
+      console.warn('[KisanMitra] Gemini unavailable, using smart mock:', String(geminiErr).slice(0, 120));
+      reply = await aiChatService.chatSmartMock(message, diagnosisContext);
+    }
+  }
 
   sendSuccess(res, { reply, role: 'assistant' });
 }));
