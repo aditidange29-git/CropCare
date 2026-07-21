@@ -50,7 +50,7 @@ The farmer is asking follow-up questions about this specific diagnosis. Keep you
 
     const genAI = new GoogleGenerativeAI(config.geminiApiKey);
     const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-1.5-flash',
       generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
       systemInstruction: systemContext,
     });

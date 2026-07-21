@@ -43,8 +43,11 @@ router.post('/', authenticate, asyncHandler(async (req: Request, res) => {
     }
   }
 
-  // Use mock unless key is the standard AIzaSy... format from Google AI Studio
-  const useMock = !config.geminiApiKey.startsWith('AIzaSy');
+  // Use mock only when key is literally a placeholder value
+  // Both AIzaSy... (old format) and AQ. (new format) are valid Google AI Studio keys
+  const useMock = config.geminiApiKey.startsWith('PASTE') ||
+    config.geminiApiKey.includes('your-gemini') ||
+    config.geminiApiKey.length < 20;
 
   const reply = useMock
     ? await aiChatService.chatMock(message, diagnosisContext)
