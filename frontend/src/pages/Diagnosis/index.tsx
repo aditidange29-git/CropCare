@@ -313,7 +313,7 @@ export default function DiagnosisPage(): React.JSX.Element {
             <path d="M17 8C8 10 5.9 16.17 3.82 19.34" stroke="#114b5f" strokeWidth="2" strokeLinecap="round" />
             <path d="M17 8c2-4 5-6 5-6s-2 5-5 12c-2.5 5.5-7 8-7 8" stroke="#114b5f" strokeWidth="2" strokeLinecap="round" />
           </svg>
-          Consult AI about this disease
+          {t('consult_kisan_mitra')}
         </button>
       </div>
     </div>

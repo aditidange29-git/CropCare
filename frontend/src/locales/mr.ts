@@ -96,4 +96,16 @@ export const mr = {
 
   // Settings
   account: 'खाते',
+
+  // KisanMitra AI branding
+  kisan_mitra_title: 'किसानमित्र',
+  kisan_mitra_general: 'शेती AI सहाय्यक',
+  kisan_mitra_disease_mode: 'ओळखलेल्या रोगाबद्दल विचारत आहात',
+  kisan_mitra_welcome: 'नमस्कार! मी किसानमित्र आहे, तुमचा शेती AI सहाय्यक. पीक रोग, खते, कीटकनाशके, सिंचन किंवा शेतीबद्दल काहीही विचारा.',
+  kisan_mitra_disease_welcome: 'माझ्याकडे तुमच्या निदानाची माहिती आहे. या रोगाबद्दल काहीही विचारा — लक्षणे, उपचार, शिफारस केलेली खते, कीटकनाशके किंवा सिंचन सल्ला.',
+  kisan_mitra_placeholder: 'शेतीबद्दल काहीही विचारा...',
+  kisan_mitra_disease_placeholder: 'या रोग, उपचार, खतांबद्दल विचारा...',
+  ask_kisan_mitra: 'किसानमित्रला विचारा',
+  kisan_mitra_sub: 'तुमचा AI शेती सहाय्यक',
+  consult_kisan_mitra: 'या रोगाबद्दल किसानमित्रचा सल्ला घ्या',
 };

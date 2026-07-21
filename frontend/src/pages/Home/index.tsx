@@ -105,16 +105,11 @@ function HomeTabContent({ userName }: { userName: string }): React.JSX.Element {
             background: 'linear-gradient(135deg, #1a936f, #114b5f)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M17 8C8 10 5.9 16.17 3.82 19.34" stroke="white" strokeWidth="2" strokeLinecap="round" />
-              <path d="M17 8c2-4 5-6 5-6s-2 5-5 12c-2.5 5.5-7 8-7 8" stroke="white" strokeWidth="2" strokeLinecap="round" />
-            </svg>
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.5px' }}>KM</span>
           </div>
           <div>
-            <p style={{ fontSize: '15px', fontWeight: 700, color: '#114b5f', margin: '0 0 2px 0' }}>Ask AI</p>
-            <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>
-              Ask any farming or crop disease question
-            </p>
+            <p style={{ fontSize: '15px', fontWeight: 700, color: '#114b5f', margin: '0 0 2px 0' }}>{t('ask_kisan_mitra')}</p>
+            <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>{t('kisan_mitra_sub')}</p>
           </div>
         </button>
 

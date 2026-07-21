@@ -96,4 +96,16 @@ export const en = {
 
   // Settings
   account: 'Account',
+
+  // KisanMitra AI branding
+  kisan_mitra_title: 'KisanMitra',
+  kisan_mitra_general: 'Agricultural AI Assistant',
+  kisan_mitra_disease_mode: 'Asking about detected disease',
+  kisan_mitra_welcome: 'Namaste! I am KisanMitra, your agricultural AI assistant. Ask me anything about crop diseases, fertilizers, pesticides, irrigation, or farming advice.',
+  kisan_mitra_disease_welcome: 'I have your diagnosis context. Ask me anything about this disease — symptoms, treatment, recommended fertilizers, pesticides, or irrigation advice.',
+  kisan_mitra_placeholder: 'Ask any farming question...',
+  kisan_mitra_disease_placeholder: 'Ask about this disease, treatment, fertilizers...',
+  ask_kisan_mitra: 'Ask KisanMitra',
+  kisan_mitra_sub: 'Your AI farming assistant',
+  consult_kisan_mitra: 'Consult KisanMitra about this disease',
 };

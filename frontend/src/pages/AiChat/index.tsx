@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeftIcon } from '../../components/icons/index.tsx';
 import { sendChatMessage, ChatMessage } from '../../services/aiChatService.ts';
+import { useT } from '../../store/LanguageContext.tsx';
 
 export default function AiChatPage(): React.JSX.Element {
   const navigate = useNavigate();
@@ -13,12 +14,11 @@ export default function AiChatPage(): React.JSX.Element {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const t = useT();
 
   const isConsultMode = !!diagnosisId;
-  const title = isConsultMode ? 'Consult AI' : 'Ask AI';
-  const placeholder = isConsultMode
-    ? 'Ask about this disease, treatment, fertilizers...'
-    : 'Ask any farming question...';
+  const title = t('kisan_mitra_title');
+  const placeholder = isConsultMode ? t('kisan_mitra_disease_placeholder') : t('kisan_mitra_placeholder');
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -29,8 +29,8 @@ export default function AiChatPage(): React.JSX.Element {
     const welcome: ChatMessage = {
       role: 'assistant',
       content: isConsultMode
-        ? 'I have your diagnosis context. Ask me anything about this disease — symptoms, treatment, recommended fertilizers, pesticides, or irrigation advice.'
-        : 'Namaste! I am CropCare AI. Ask me anything about crop diseases, fertilizers, pesticides, irrigation, or farming advice.',
+        ? t('kisan_mitra_disease_welcome')
+        : t('kisan_mitra_welcome'),
     };
     setMessages([welcome]);
   }, [isConsultMode]);
@@ -93,10 +93,7 @@ export default function AiChatPage(): React.JSX.Element {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             marginRight: '8px', marginTop: '2px',
           }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M17 8C8 10 5.9 16.17 3.82 19.34" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-              <path d="M17 8c2-4 5-6 5-6s-2 5-5 12c-2.5 5.5-7 8-7 8" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-            </svg>
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.5px' }}>KM</span>
           </div>
         )}
         <div
@@ -125,7 +122,7 @@ export default function AiChatPage(): React.JSX.Element {
         <div>
           <h1 style={{ fontSize: '17px', fontWeight: 700, color: '#ffffff', margin: 0 }}>{title}</h1>
           <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', margin: 0 }}>
-            {isConsultMode ? 'Asking about detected disease' : 'Agricultural AI Assistant'}
+            {isConsultMode ? t('kisan_mitra_disease_mode') : t('kisan_mitra_general')}
           </p>
         </div>
       </div>
