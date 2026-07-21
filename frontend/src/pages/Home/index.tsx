@@ -289,6 +289,16 @@ function SettingsTabContent(): React.JSX.Element {
           <span style={{ fontSize: '14px', fontWeight: 600, color: '#374151' }}>v1.0.0</span>
         </div>
 
+        {/* Dealer/Admin Portal */}
+        <button
+          onClick={() => navigate('/dealer/login')}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', minHeight: '48px', width: '100%', backgroundColor: '#ffffff', color: '#114b5f', border: '1.5px solid #114b5f', borderRadius: '8px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', transition: 'background-color 0.15s ease' }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#f0f4f8'; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#ffffff'; }}
+        >
+          Dealer / Admin Portal
+        </button>
+
         {/* Logout */}
         <button onClick={logout} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', minHeight: '52px', width: '100%', backgroundColor: '#ffffff', color: '#c1121f', border: '2px solid #c1121f', borderRadius: '8px', fontSize: '16px', fontWeight: 600, cursor: 'pointer', transition: 'background-color 0.15s ease' }} onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#fef2f2'; }} onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#ffffff'; }}>
           <LogOutIcon size={20} color="#c1121f" />

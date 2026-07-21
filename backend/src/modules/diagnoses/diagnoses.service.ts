@@ -60,8 +60,8 @@ export class DiagnosesService {
     }
 
     // ── 2. Call Gemini (or mock when key is a placeholder) ──────────────────
-    // Only use mock when key is literally a placeholder — AQ. keys ARE valid Google AI Studio keys
-    const useMock = config.geminiApiKey.startsWith('PASTE') || config.geminiApiKey === 'your-gemini-key-here';
+    // Only use real Gemini when key is the standard AIzaSy... format
+    const useMock = !config.geminiApiKey.startsWith('AIzaSy');
 
     const aiResult = useMock
       ? await analyzeImageMock()

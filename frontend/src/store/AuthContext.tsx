@@ -23,6 +23,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshUser = useCallback(() => {
+    const token = localStorage.getItem('cropcare_token');
+    if (token) {
+      // Decode JWT payload (middle part) to check expiry — no library needed
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const isExpired = payload.exp && payload.exp * 1000 < Date.now();
+        if (isExpired) {
+          // Token expired — clear everything and show login
+          localStorage.removeItem('cropcare_token');
+          localStorage.removeItem('cropcare_user');
+          localStorage.removeItem('cropcare_role');
+          setUser(null);
+          setRole(null);
+          setIsLoading(false);
+          return;
+        }
+      } catch {
+        // Malformed token — clear it
+        localStorage.removeItem('cropcare_token');
+        localStorage.removeItem('cropcare_user');
+        localStorage.removeItem('cropcare_role');
+        setUser(null);
+        setRole(null);
+        setIsLoading(false);
+        return;
+      }
+    }
     const storedUser = getStoredUser();
     const storedRole = getStoredRole();
     setUser(storedUser);

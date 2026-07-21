@@ -113,6 +113,17 @@ export default function DemoLoginPage(): React.JSX.Element {
             </button>
           </form>
           <p style={{ textAlign: 'center', fontSize: '13px', color: '#9ca3af', margin: '28px 0 0 0', lineHeight: 1.5 }}>{t('login_note')}</p>
+        <div style={{ textAlign: 'center', marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #f3f4f6' }}>
+          <p style={{ fontSize: '13px', color: '#6b7280', margin: '0 0 8px 0' }}>Are you a dealer or admin?</p>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+            <button onClick={() => navigate('/dealer/login')} style={{ fontSize: '13px', fontWeight: 600, color: '#114b5f', background: 'none', border: '1.5px solid #114b5f', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', minHeight: '36px' }}>
+              Dealer Login
+            </button>
+            <button onClick={() => navigate('/dealer/signup')} style={{ fontSize: '13px', fontWeight: 600, color: '#1a936f', background: 'none', border: '1.5px solid #1a936f', borderRadius: '8px', padding: '8px 16px', cursor: 'pointer', minHeight: '36px' }}>
+              Dealer Signup
+            </button>
+          </div>
+        </div>
         </div>
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>

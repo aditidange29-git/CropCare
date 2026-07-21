@@ -43,7 +43,8 @@ router.post('/', authenticate, asyncHandler(async (req: Request, res) => {
     }
   }
 
-  const useMock = config.geminiApiKey.startsWith('PASTE') || config.geminiApiKey === 'your-gemini-key-here';
+  // Use mock unless key is the standard AIzaSy... format from Google AI Studio
+  const useMock = !config.geminiApiKey.startsWith('AIzaSy');
 
   const reply = useMock
     ? await aiChatService.chatMock(message, diagnosisContext)
