@@ -43,11 +43,8 @@ router.post('/', authenticate, asyncHandler(async (req: Request, res) => {
     }
   }
 
-  // Use mock only when key is literally a placeholder value
-  // Both AIzaSy... (old format) and AQ. (new format) are valid Google AI Studio keys
-  const useMock = config.geminiApiKey.startsWith('PASTE') ||
-    config.geminiApiKey.includes('your-gemini') ||
-    config.geminiApiKey.length < 20;
+  // Always try real AI first (Groq) — falls back to smart mock automatically in the service
+  const useMock = false;
 
   let reply: string;
   if (useMock) {
@@ -56,8 +53,8 @@ router.post('/', authenticate, asyncHandler(async (req: Request, res) => {
     try {
       reply = await aiChatService.chat(message, history as ChatMessage[], diagnosisContext);
     } catch (geminiErr) {
-      // Gemini API call failed (invalid key, quota, network) — fall back to smart mock
-      console.warn('[KisanMitra] Gemini unavailable, using smart mock:', String(geminiErr).slice(0, 120));
+      // Groq API call failed (invalid key, quota, network) — fall back to smart mock
+      console.warn('[KisanMitra] Groq unavailable, using smart mock:', String(geminiErr).slice(0, 120));
       reply = await aiChatService.chatSmartMock(message, diagnosisContext);
     }
   }

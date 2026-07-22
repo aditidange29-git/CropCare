@@ -20,6 +20,7 @@ export const config = {
   supabaseUrl: requireEnv('SUPABASE_URL'),
   supabaseServiceRoleKey: requireEnv('SUPABASE_SERVICE_ROLE_KEY'),
   geminiApiKey: requireEnv('GEMINI_API_KEY'),
+  groqApiKey: process.env.GROQ_API_KEY ?? '',
   jwtSecret: requireEnv('JWT_SECRET'),
   dailyDiagnosisLimitPerUser: parseInt(
     process.env.DAILY_DIAGNOSIS_LIMIT_PER_USER ?? '20',
