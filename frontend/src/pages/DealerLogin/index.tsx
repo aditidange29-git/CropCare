@@ -62,6 +62,10 @@ export default function DealerLoginPage(): React.JSX.Element {
           Don't have an account?{' '}
           <span onClick={() => navigate('/dealer/signup')} style={{ color: '#114b5f', fontWeight: 600, cursor: 'pointer' }}>Register as Dealer</span>
         </p>
+        <p style={{ textAlign: 'center', fontSize: '13px', color: '#9ca3af', margin: '12px 0 0 0' }}>
+          Are you an admin?{' '}
+          <span onClick={() => navigate('/admin/login')} style={{ color: '#6b7280', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>Admin Login →</span>
+        </p>
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
     </div>

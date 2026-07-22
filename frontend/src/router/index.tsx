@@ -18,6 +18,7 @@ import DealerLoginPage from '../pages/DealerLogin/index.tsx';
 import DealerSignupPage from '../pages/DealerSignup/index.tsx';
 import DealerPendingPage from '../pages/DealerPending/index.tsx';
 import AdminConsolePage from '../pages/AdminConsole/index.tsx';
+import AdminLoginPage from '../pages/AdminLogin/index.tsx';
 
 function RequireAuth({ children }: { children: React.ReactNode }): React.JSX.Element {
   const { isAuthenticated, isLoading } = useAuth();
@@ -68,7 +69,8 @@ export default function AppRouter(): React.JSX.Element {
       {/* Dealer (auth required) */}
       <Route path="/dealer/dashboard" element={<RequireAuth><DealerDashboardPage /></RequireAuth>} />
 
-      {/* Admin (auth required) */}
+      {/* Admin */}
+      <Route path="/admin/login" element={<AdminLoginPage />} />
       <Route path="/admin" element={<RequireAuth><AdminConsolePage /></RequireAuth>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
