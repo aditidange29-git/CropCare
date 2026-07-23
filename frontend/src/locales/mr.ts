@@ -93,6 +93,8 @@ export const mr = {
   diagnosis_history: 'निदान इतिहास',
   no_diagnoses: 'कोणतेही निदान आढळले नाही',
   no_diagnoses_sub: 'तुमची मागील निदाने येथे दिसतील',
+  delete_diagnosis: 'हटवा',
+  delete_confirm: 'हे निदान हटवायचे? हे पूर्ववत करता येणार नाही.',
 
   // Settings
   account: 'खाते',

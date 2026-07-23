@@ -41,3 +41,7 @@ export async function getDiagnosisById(
 ): Promise<DiagnosisResult & { recommendations: any[] }> {
   return api.get(`/diagnoses/${id}`);
 }
+
+export async function deleteDiagnosis(id: string): Promise<void> {
+  await api.delete(`/diagnoses/${id}`);
+}

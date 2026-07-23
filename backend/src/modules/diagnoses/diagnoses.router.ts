@@ -54,4 +54,40 @@ router.get('/:id', authenticate, asyncHandler(async (req: Request, res) => {
   sendSuccess(res, await diagnosesService.getDiagnosisById(req.params.id, userId));
 }));
 
+router.delete('/:id', authenticate, asyncHandler(async (req: Request, res) => {
+  const { sub: userId } = (req as AuthenticatedRequest).user;
+  const { id } = req.params;
+
+  // Verify ownership — only the farmer who created it can delete
+  const { data: existing } = await supabase
+    .from('diagnoses')
+    .select('id, user_id, image_url')
+    .eq('id', id)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (!existing) {
+    return sendError(res, 'NOT_FOUND', 'Diagnosis not found or access denied.', 404);
+  }
+
+  // Delete from DB (recommendations + chats cascade if FK set, otherwise delete manually)
+  await supabase.from('recommendations').delete().eq('diagnosis_id', id);
+  await supabase.from('chats').delete().eq('diagnosis_id', id);
+  const { error } = await supabase.from('diagnoses').delete().eq('id', id).eq('user_id', userId);
+
+  if (error) {
+    return sendError(res, 'INTERNAL_ERROR', 'Failed to delete diagnosis.', 500);
+  }
+
+  // Optionally delete the image from storage (non-blocking)
+  if (existing.image_url) {
+    const urlParts = existing.image_url.split('/crop-images/');
+    if (urlParts[1]) {
+      supabase.storage.from('crop-images').remove([urlParts[1]]).catch(console.error);
+    }
+  }
+
+  sendSuccess(res, { deleted: true });
+}));
+
 export default router;

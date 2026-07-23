@@ -93,6 +93,8 @@ export const en = {
   diagnosis_history: 'Diagnosis History',
   no_diagnoses: 'No diagnoses found',
   no_diagnoses_sub: 'Your past diagnoses will appear here',
+  delete_diagnosis: 'Delete',
+  delete_confirm: 'Delete this diagnosis? This cannot be undone.',
 
   // Settings
   account: 'Account',
